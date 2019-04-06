@@ -3,6 +3,11 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+WIA Logger/SonyAlphaUSBLoader.dll
+WIA Logger/SonyAlphaUSBLoader.exp
+WIA Logger/SonyAlphaUSBLoader.lib
+WIA Logger/SonyAlphaUSBLoader.obj
+
 # User-specific files
 *.suo
 *.user

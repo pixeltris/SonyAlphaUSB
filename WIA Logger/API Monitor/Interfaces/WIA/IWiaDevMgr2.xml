@@ -1,0 +1,74 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaDevMgr2" Id="{79C07CF1-CBDD-41ee-8EC3-F00080CADA7A}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="EnumDeviceInfo">
+            <Param Type="LONG" Name="lFlag" />
+            <Param Type="IEnumWIA_DEV_INFO**" Name="ppIEnum" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="CreateDevice">
+			<Param Type="LONG" Name="lFlags" />
+            <Param Type="BSTR" Name="bstrDeviceID" />
+            <Param Type="IWiaItem2**" Name="ppWiaItem2Root" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="SelectDeviceDlg">
+            <Param Type="HWND" Name="hwndParent" />
+            <Param Type="LONG" Name="lDeviceType" />
+            <Param Type="LONG" Name="lFlags" />
+            <Param Type="BSTR*" Name="pbstrDeviceID" />
+            <Param Type="IWiaItem2**" Name="ppItemRoot" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="SelectDeviceDlgID">
+            <Param Type="HWND" Name="hwndParent" />
+            <Param Type="LONG" Name="lDeviceType" />
+            <Param Type="LONG" Name="lFlags" />
+            <Param Type="BSTR*" Name="pbstrDeviceID" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="RegisterEventCallbackInterface">
+            <Param Type="LONG" Name="lFlags" />
+			<Param Type="BSTR" Name="bstrDeviceID" />
+			<Param Type="const GUID*" Name="pEventGUID" />
+			<Param Type="IWiaEventCallback*" Name="pIWiaEventCallback" />
+			<Param Type="IUnknown**" Name="pEventObject" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="RegisterEventCallbackProgram">
+            <Param Type="LONG" Name="lFlags" />
+			<Param Type="BSTR" Name="bstrDeviceID" />
+			<Param Type="const GUID*" Name="pEventGUID" />
+			<Param Type="BSTR" Name="bstrFullAppName" />
+			<Param Type="BSTR" Name="bstrCommandline" />
+			<Param Type="BSTR" Name="bstrName" />
+			<Param Type="BSTR" Name="bstrDescription" />
+			<Param Type="BSTR" Name="bstrIcon" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="RegisterEventCallbackCLSID">
+            <Param Type="LONG" Name="lFlags" />
+			<Param Type="BSTR" Name="bstrDeviceID" />
+			<Param Type="const GUID*" Name="pEventGUID" />
+			<Param Type="const GUID*" Name="pClsID" />
+			<Param Type="BSTR" Name="bstrName" />
+			<Param Type="BSTR" Name="bstrDescription" />
+			<Param Type="BSTR" Name="bstrIcon" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="GetImageDlg">
+            <Param Type="LONG" Name="lFlags" />
+            <Param Type="BSTR" Name="bstrDeviceID" />
+            <Param Type="HWND" Name="hwndParent" />
+			<Param Type="BSTR" Name="bstrFolderName" />
+			<Param Type="BSTR" Name="bstrFilename" />
+			<Param Type="LONG*" Name="plNumFiles" />
+			<Param Type="PPBSTR" Name="ppbstrFilePaths" />
+			<Param Type="IWiaItem2**" Name="ppItem" />
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

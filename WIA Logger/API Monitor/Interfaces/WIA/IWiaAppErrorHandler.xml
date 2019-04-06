@@ -1,0 +1,19 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaAppErrorHandler" Id="{6C16186C-D0A6-400c-80F4-D26986A0E734}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="GetWindow">
+			<Param Type="HWND*" Name="phwnd" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="ReportStatus">
+			<Param Type="LONG" Name="lFlags" />
+			<Param Type="IWiaItem2*" Name="pWiaItem2" />
+			<Param Type="HRESULT" Name="hrStatus" />
+			<Param Type="LONG" Name="lPercentComplete" />
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

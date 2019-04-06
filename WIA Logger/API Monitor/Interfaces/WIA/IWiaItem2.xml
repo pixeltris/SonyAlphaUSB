@@ -1,0 +1,97 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaItem2" Id="{6CBA0075-1287-407d-9B77-CF0E030435CC}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="CreateChildItem">
+            <Param Type="LONG" Name="lItemFlags" />
+			<Param Type="LONG" Name="lCreationFlags" />
+			<Param Type="BSTR" Name="bstrItemName" />
+			<Param Type="IWiaItem2**" Name="ppIWiaItem2" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="DeleteItem">
+            <Param Type="LONG" Name="lFlags" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="EnumChildItems">
+            <Param Type="const GUID*" Name="pCategoryGUID" />
+			<Param Type="IEnumWiaItem2**" Name="ppIEnumWiaItem2" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="FindItemByName">
+            <Param Type="LONG" Name="lFlags" />
+			<Param Type="BSTR" Name="bstrFullItemName" />
+			<Param Type="IWiaItem2**" Name="ppIWiaItem2" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="GetItemCategory">
+            <Param Type="GUID*" Name="pItemCategoryGUID" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="GetItemType">
+            <Param Type="LONG*" Name="pItemType" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="DeviceDlg">
+            <Param Type="LONG" Name="lFlags" />
+			<Param Type="HWND" Name="hwndParent" />
+			<Param Type="BSTR" Name="bstrFolderName" />
+			<Param Type="BSTR" Name="bstrFilename" />
+			<Param Type="LONG*" Name="plNumFiles" />
+			<Param Type="PPBSTR" Name="ppbstrFilePaths" />
+			<Param Type="IWiaItem2**" Name="ppItem" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="DeviceCommand">
+            <Param Type="LONG" Name="lFlags" />
+			<Param Type="const GUID*" Name="pCmdGUID" />
+			<Param Type="IWiaItem2**" Name="ppIWiaItem2" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="EnumDeviceCapabilities">
+            <Param Type="LONG" Name="lFlags" />
+			<Param Type="IEnumWIA_DEV_CAPS**" Name="ppIEnumWIA_DEV_CAPS" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="CheckExtension">
+            <Param Type="LONG" Name="lFlags" />
+			<Param Type="BSTR" Name="bstrName" />
+			<Param Type="REFIID" Name="riidExtensionInterface" />
+			<Param Type="BOOL*" Name="pbExtensionExists" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="GetExtension">
+            <Param Type="LONG" Name="lFlags" />
+			<Param Type="BSTR" Name="bstrName" />
+			<Param Type="REFIID" Name="riidExtensionInterface" />
+			<Param Type="void**" Name="ppOut" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="GetParentItem">
+            <Param Type="IWiaItem2**" Name="ppIWiaItem2" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="GetRootItem">
+            <Param Type="IWiaItem2**" Name="ppIWiaItem2" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="GetPreviewComponent">
+            <Param Type="LONG" Name="lFlags" />
+            <Param Type="IWiaPreview**" Name="ppWiaPreview" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="EnumRegisterEventInfo">
+            <Param Type="LONG" Name="lFlags" />
+            <Param Type="const GUID*" Name="pEventGUID" />
+			<Param Type="IEnumWIA_DEV_CAPS**" Name="ppIEnum" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="Diagnostic">
+            <Param Type="ULONG" Name="ulSize" />
+            <Param Type="BYTE*" Name="pBuffer" Count="ulSize" />
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

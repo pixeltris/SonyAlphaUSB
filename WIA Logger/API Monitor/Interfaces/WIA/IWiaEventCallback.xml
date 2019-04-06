@@ -1,0 +1,19 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaEventCallback" Id="{ae6287b0-0084-11d2-973b-00a0c9068f2e}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="ImageEventCallback">
+            <Param Type="const GUID*" Name="pEventGUID" />
+            <Param Type="BSTR" Name="bstrEventDescription" />
+			<Param Type="BSTR" Name="bstrDeviceID" />
+			<Param Type="BSTR" Name="bstrDeviceDescription" />
+			<Param Type="DWORD" Name="dwDeviceType" />
+			<Param Type="BSTR" Name="bstrFullItemName" />
+			<Param Type="ULONG*" Name="pulEventType" />
+			<Param Type="ULONG" Name="ulReserved" />
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

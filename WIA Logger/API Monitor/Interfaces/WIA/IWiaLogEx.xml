@@ -1,0 +1,36 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaLogEx" Id="{AF1F22AC-7A40-4787-B421-AEb47A1FBD0B}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="InitializeLogEx">
+			<Param Type="BYTE*" Name="hInstance" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="hResult">
+			<Param Type="HRESULT" Name="hResult" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="Log">
+			<Param Type="LONG" Name="lFlags" />
+			<Param Type="LONG" Name="lResID" />
+			<Param Type="LONG" Name="lDetail" />
+			<Param Type="BSTR" Name="bstrText" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="hResultEx">
+			<Param Type="LONG" Name="lMethodId" />
+			<Param Type="HRESULT" Name="hResult" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="LogEx">
+			<Param Type="LONG" Name="lMethodId" />
+			<Param Type="LONG" Name="lFlags" />
+			<Param Type="LONG" Name="lResID" />
+			<Param Type="LONG" Name="lDetail" />
+			<Param Type="BSTR" Name="bstrText" />
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

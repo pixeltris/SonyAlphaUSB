@@ -1,0 +1,27 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaPreview" Id="{95C2B4FD-33F2-4d86-AD40-9431F0DF08F7}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="GetNewPreview">
+			<Param Type="LONG" Name="lFlags" />
+			<Param Type="IWiaItem2*" Name="pWiaItem2" />
+			<Param Type="IWiaTransferCallback*" Name="pWiaTransferCallback" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="UpdatePreview">
+			<Param Type="LONG" Name="lFlags" />
+			<Param Type="IWiaItem2*" Name="pWiaItem2" />
+			<Param Type="IWiaTransferCallback*" Name="pWiaTransferCallback" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="DetectRegions">
+			<Param Type="LONG" Name="lFlags" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="Clear">
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

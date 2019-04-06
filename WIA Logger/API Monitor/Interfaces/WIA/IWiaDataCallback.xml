@@ -1,0 +1,19 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaDataCallback" Id="{a558a866-a5b0-11d2-a08f-00c04f72dc3c}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="BandedDataCallback">
+			<Param Type="LONG" Name="lMessage" />
+			<Param Type="LONG" Name="lStatus" />
+			<Param Type="LONG" Name="lPercentComplete" />
+			<Param Type="LONG" Name="lOffset" />
+			<Param Type="LONG" Name="lLength" />
+			<Param Type="LONG" Name="lReserved" />
+			<Param Type="LONG" Name="lResLength" />
+			<Param Type="BYTE*" Name="pbBuffer" />
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

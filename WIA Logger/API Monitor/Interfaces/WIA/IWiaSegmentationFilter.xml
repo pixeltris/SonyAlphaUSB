@@ -1,0 +1,14 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaSegmentationFilter" Id="{EC46A697-AC04-4447-8F65-FF63D5154B21}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="DetectRegions">
+			<Param Type="LONG" Name="lFlags" />
+			<Param Type="IStream*" Name="pInputStream" />
+			<Param Type="IWiaItem2*" Name="pWiaItem2" />
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

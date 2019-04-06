@@ -1,0 +1,20 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaTransferCallback" Id="{27d4eaaf-28a6-4ca5-9aab-e678168b9527}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="TransferCallback">
+			<Param Type="LONG" Name="lFlags" />
+			<Param Type="WiaTransferParams*" Name="pWiaTransferParams" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="GetNextStream">
+			<Param Type="LONG" Name="lFlags" />
+			<Param Type="BSTR" Name="bstrItemName" />
+			<Param Type="BSTR" Name="bstrFullItemName" />
+			<Param Type="IStream**" Name="ppDestination" />
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

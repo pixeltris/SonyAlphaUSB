@@ -1,0 +1,30 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaDataTransfer" Id="{a6cef998-a5b0-11d2-a08f-00c04f72dc3c}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="idtGetData">
+			<Param Type="LPSTGMEDIUM" Name="pMedium" />
+			<Param Type="IWiaDataCallback*" Name="pIWiaDataCallback" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="idtGetData">
+			<Param Type="PWIA_DATA_TRANSFER_INFO" Name="pWiaDataTransInfo" />
+			<Param Type="IWiaDataCallback*" Name="pIWiaDataCallback" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="idtQueryGetData">
+			<Param Type="WIA_FORMAT_INFO*" Name="pfe" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="idtEnumWIA_FORMAT_INFO">
+			<Param Type="IEnumWIA_FORMAT_INFO**" Name="ppEnum" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="idtGetExtendedTransferInfo">
+			<Param Type="PWIA_EXTENDED_TRANSFER_INFO" Name="pExtendedTransferInfo" />
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

@@ -1,0 +1,24 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaItemExtras" Id="{6291ef2c-36ef-4532-876a-8e132593778d}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="GetExtendedErrorInfo">
+			<Param Type="BSTR*" Name="bstrErrorText" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="Escape">
+			<Param Type="DWORD" Name="dwEscapeCode" />
+			<Param Type="BYTE*" Name="lpInData" Count="cbInDataSize" />
+			<Param Type="DWORD" Name="cbInDataSize" />
+			<Param Type="BYTE*" Name="pOutData" Count="dwOutDataSize" />
+			<Param Type="DWORD" Name="dwOutDataSize" />
+			<Param Type="DWORD*" Name="pdwActualDataSize" />
+            <Return Type="HRESULT" />
+        </Api>
+        <Api Name="CancelPendingIO">
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>

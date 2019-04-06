@@ -1,0 +1,118 @@
+<ApiMonitor>
+    <Include Filename="Headers\shell.h.xml" />
+    <Include Filename="Headers\ole.h.xml" />
+	
+    <Headers>
+	
+		<Variable Name="PROPSPEC []"   Type="Pointer" Base="PROPSPEC" />
+		<Variable Name="ULONG []"   Type="Pointer" Base="ULONG" />
+		<Variable Name="PPBSTR"   Type="Pointer" Base="BSTR*" />
+	
+        <!-- WIA_DITHER_PATTERN_DATA -->
+        <Variable Name="WIA_DITHER_PATTERN_DATA" Type="Struct">
+            <Field Type="LONG" Name="lSize" />
+            <Field Type="BSTR" Name="bstrPatternName" />
+            <Field Type="LONG" Name="lPatternWidth" />
+            <Field Type="LONG" Name="lPatternLength" />
+			<Field Type="LONG" Name="cbPattern" />
+			<Field Type="BYTE*" Name="pbPattern" />
+        </Variable>
+		<Variable Name="PWIA_DITHER_PATTERN_DATA" Type="Pointer" Base="WIA_DITHER_PATTERN_DATA" />
+
+        <!-- WIA_PROPID_TO_NAME -->
+        <Variable Name="WIA_PROPID_TO_NAME" Type="Struct">
+            <Field Type="PROPID" Name="propid" />
+            <Field Type="LPOLESTR" Name="pszName" />
+        </Variable>
+		<Variable Name="PWIA_PROPID_TO_NAME" Type="Pointer" Base="WIA_PROPID_TO_NAME" />
+		
+        <!-- WIA_FORMAT_INFO -->
+        <Variable Name="WIA_FORMAT_INFO" Type="Struct">
+            <Field Type="GUID" Name="guidFormatID" />
+            <Field Type="LONG" Name="lTymed" />
+        </Variable>
+		<Variable Name="WIA_FORMAT_INFO*" Type="Pointer" Base="WIA_FORMAT_INFO" />
+		<Variable Name="PWIA_FORMAT_INFO" Type="Pointer" Base="WIA_FORMAT_INFO" />
+		
+        <!-- WIA_DATA_CALLBACK_HEADER -->
+        <Variable Name="WIA_DATA_CALLBACK_HEADER" Type="Struct">
+            <Field Type="LONG" Name="lSize" />
+            <Field Type="GUID" Name="guidFormatID" />
+			<Field Type="LONG" Name="lBufferSize" />
+			<Field Type="LONG" Name="lPageCount" />
+        </Variable>
+		<Variable Name="PWIA_DATA_CALLBACK_HEADER" Type="Pointer" Base="WIA_DATA_CALLBACK_HEADER" />
+		
+        <!-- WIA_DATA_TRANSFER_INFO -->
+        <Variable Name="WIA_DATA_TRANSFER_INFO" Type="Struct">
+            <Field Type="ULONG" Name="lSize" />
+			<Field Type="ULONG" Name="ulSection" />
+			<Field Type="ULONG" Name="ulBufferSize" />
+			<Field Type="BOOL" Name="bDoubleBuffer" />
+			<Field Type="ULONG" Name="ulReserved1" />
+			<Field Type="ULONG" Name="ulReserved2" />
+			<Field Type="ULONG" Name="ulReserved3" />
+        </Variable>
+		<Variable Name="PWIA_DATA_TRANSFER_INFO" Type="Pointer" Base="WIA_DATA_TRANSFER_INFO" />
+		
+        <!-- WIA_EXTENDED_TRANSFER_INFO -->
+        <Variable Name="WIA_EXTENDED_TRANSFER_INFO" Type="Struct">
+            <Field Type="ULONG" Name="lSize" />
+			<Field Type="ULONG" Name="ulMinBufferSize" />
+			<Field Type="ULONG" Name="ulOptimalBufferSize" />
+			<Field Type="ULONG" Name="ulMaxBufferSize" />
+			<Field Type="ULONG" Name="ulNumBuffers" />
+        </Variable>
+		<Variable Name="PWIA_EXTENDED_TRANSFER_INFO" Type="Pointer" Base="WIA_EXTENDED_TRANSFER_INFO" />
+		
+        <!-- WIA_DEV_CAP -->
+        <Variable Name="WIA_DEV_CAP" Type="Struct">
+            <Field Type="GUID" Name="guid" />
+            <Field Type="ULONG" Name="ulFlags" />
+            <Field Type="BSTR" Name="bstrName" />
+            <Field Type="BSTR" Name="bstrDescription" />
+            <Field Type="BSTR" Name="bstrIcon" />
+            <Field Type="BSTR" Name="bstrCommandline" />
+        </Variable>
+		<Variable Name="WIA_DEV_CAP*" Type="Pointer" Base="WIA_DEV_CAP" />
+		<Variable Name="PWIA_DEV_CAP" Type="Pointer" Base="WIA_DEV_CAP" />
+		<Variable Name="WIA_EVENT_HANDLER" Type="Alias" Base="WIA_DEV_CAP" />
+		<Variable Name="PWIA_EVENT_HANDLER" Type="Pointer" Base="WIA_DEV_CAP" />
+		
+        <!-- WiaTransferParams -->
+        <Variable Name="WiaTransferParams" Type="Struct">
+            <Field Type="LONG" Name="lMessage" />
+            <Field Type="LONG" Name="lPercentComplete" />
+			<Field Type="ULONG64" Name="ulTransferredBytes" />
+			<Field Type="HRESULT" Name="hrErrorStatus" />
+        </Variable>
+		<Variable Name="WiaTransferParams*" Type="Pointer" Base="WiaTransferParams" />
+		
+        <!-- Interfaces -->
+        <Variable Name="IEnumWIA_DEV_CAPS" Type="Interface" />
+		<Variable Name="IEnumWIA_DEV_INFO" Type="Interface" />
+		<Variable Name="IEnumWIA_FORMAT_INFO" Type="Interface" />
+		<Variable Name="IEnumWiaItem" Type="Interface" />
+		<Variable Name="IEnumWiaItem2" Type="Interface" />
+		<Variable Name="IWiaAppErrorHandler" Type="Interface" />
+		<Variable Name="IWiaDataCallback" Type="Interface" />
+		<Variable Name="IWiaDataTransfer" Type="Interface" />
+		<Variable Name="IWiaDevMgr" Type="Interface" />
+		<Variable Name="IWiaDevMgr2" Type="Interface" />
+		<Variable Name="IWiaErrorHandler" Type="Interface" />
+		<Variable Name="IWiaEventCallback" Type="Interface" />
+		<Variable Name="IWiaImageFilter" Type="Interface" />
+		<Variable Name="IWiaItem" Type="Interface" />
+		<Variable Name="IWiaItem2" Type="Interface" />
+		<Variable Name="IWiaItemExtras" Type="Interface" />
+		<Variable Name="IWiaLog" Type="Interface" />
+		<Variable Name="IWiaLogEx" Type="Interface" />
+		<Variable Name="IWiaNotifyDevMgr" Type="Interface" />
+		<Variable Name="IWiaPreview" Type="Interface" />
+		<Variable Name="IWiaPropertyStorage" Type="Interface" />
+		<Variable Name="IWiaSegmentationFilter" Type="Interface" />
+		<Variable Name="IWiaTransfer" Type="Interface" />
+		<Variable Name="IWiaTransferCallback" Type="Interface" />
+		
+    </Headers>
+</ApiMonitor>

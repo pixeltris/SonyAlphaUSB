@@ -1,0 +1,11 @@
+<ApiMonitor>
+    <Include Filename="Interfaces\IUnknown.xml" />
+    <Include Filename="Headers\wia.h.xml" />
+    <Interface Name="IWiaNotifyDevMgr" Id="{70681EA0-E7BF-4291-9FB1-4E8813A3F78E}" BaseInterface="IUnknown" OnlineHelp="MSDN" ErrorFunc="HRESULT" Category="Component Object Model (COM)/Windows Image Acquisition (WIA)">
+        <!-- Variables -->
+        <!-- Methods -->
+        <Api Name="NewDeviceArrival">
+            <Return Type="HRESULT" />
+        </Api>
+    </Interface>
+</ApiMonitor>
