@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using SonyAlphaUSB.Interop;
@@ -67,13 +68,18 @@ namespace SonyAlphaUSB
                 request.WriteHexString(hex);
                 using (Packet response = Packet.Reader(WIA.SendCommand(this, request.GetBuffer())))
                 {
-                    if (response.ReadByte() != 1 || response.ReadByte() != 0x20)
-                    {
-                        return false;
-                    }
+                    return IsValidResponse(response);
                 }
             }
-            return true;
+        }
+
+        private bool IsValidResponse(Packet packet)
+        {
+            int tempIndex = packet.Index;
+            packet.Index = 0;
+            bool isValid = packet.ReadByte() == 1 && packet.ReadByte() == 0x20;
+            packet.Index = tempIndex;
+            return isValid;
         }
 
         public bool Handshake()
@@ -125,10 +131,19 @@ namespace SonyAlphaUSB
 
         public void ModifyFNumber(short modifyAmount)
         {
-            ModifyMainSettingI16(MainSettingIds.FNumber, modifyAmount);
+            DoMainSettingI16(MainSettingIds.FNumber, modifyAmount);
+        }
+        
+        public void CapturePhoto()
+        {
+            // NOTE: The camera always wants to send the data over to the PC. Is there any way to do it without transfer?
+            DoMainSettingI16(MainSettingIds.CapturePhoto1, 2);
+            DoMainSettingI16(MainSettingIds.CapturePhoto2, 2);//takes the photo
+            DoMainSettingI16(MainSettingIds.CapturePhoto1, 1);
+            DoMainSettingI16(MainSettingIds.CapturePhoto2, 1);
         }
 
-        private void ModifyMainSettingI16(MainSettingIds id, short amount)
+        private bool DoMainSettingI16(MainSettingIds id, short amount)
         {
             using (Packet request = new Packet(OpCodes.MainSetting))
             {
@@ -136,17 +151,96 @@ namespace SonyAlphaUSB
                 request.WriteUInt16((ushort)id);
                 request.WriteHexString("00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04 00 00 00");
                 request.WriteInt16(amount);
-                using (Packet response = Packet.Reader(WIA.SendCommand(this, request.GetBuffer())))
+                byte[] buffer = WIA.SendCommand(this, request.GetBuffer());
+                using (Packet response = Packet.Reader(buffer))
                 {
                     // TODO: Validate the result;
-                    //if (response.ReadByte() != 1 || response.ReadByte() != 0x20)
-                    //{
-                    //    return false;
-                    //}
+                    if (!IsValidResponse(response))
+                    {
+                        return false;
+                    }
+                    return true;
                 }
             }
+        }
 
-            //07 92 00 00 00 00 00 00 00 00 C9 D2 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04 00 00 00 02 00
+        private byte[] GetImage(bool liveView)
+        {
+            using (Packet response = Packet.Reader(GetImageRequest(liveView, true, 0)))
+            {
+                if (!IsValidResponse(response))
+                {
+                    return null;
+                }
+
+                response.Index = 32;
+                int numImages = response.ReadInt16();//Num images?
+                Debug.Assert(numImages == 0 || numImages == 1);
+                if (numImages != 1)
+                {
+                    return null;
+                }
+
+                int imageInfoUnk = response.ReadInt32();//14337(01 38 00 00)
+                int imageSizeInBytes = response.ReadInt32();
+                Debug.Assert(imageInfoUnk == 14337);
+                if (imageSizeInBytes <= 0)
+                {
+                    return null;
+                }
+                response.Index = 82;
+                string imageName = response.ReadFixedString(response.ReadByte(), Encoding.Unicode);
+
+                using (Packet dataResponse = Packet.Reader(GetImageRequest(liveView, false, imageSizeInBytes)))
+                {
+                    if (!IsValidResponse(dataResponse))
+                    {
+                        return null;
+                    }
+
+                    dataResponse.Index = 30;
+                    if (liveView)
+                    {
+                        int unkBufferSize = dataResponse.ReadInt32();
+                        int liveViewBufferSize = dataResponse.ReadInt32();
+                        byte[] unkBuff = dataResponse.ReadBytes(unkBufferSize - 8);
+                        
+                        byte[] buff = dataResponse.ReadRemaining();
+                        Debug.Assert(buff.Length == liveViewBufferSize);
+                        return buff;
+                    }
+                    else
+                    {
+                        byte[] buff = dataResponse.ReadRemaining();
+                        Debug.Assert(buff.Length == imageSizeInBytes);
+                        return buff;
+                    }
+                }
+            }
+        }
+
+        private byte[] GetImageRequest(bool liveView, bool info, int imageSizeInBytes)
+        {
+            // Should be only 29 bytes of extra space required, add a little extra just in case
+            int responseSize = imageSizeInBytes == 0 ? 1024 : imageSizeInBytes + 32;
+
+            OpCodes opcode = info ? OpCodes.GetImageInfo : OpCodes.GetImageData;
+            using (Packet request = new Packet(opcode))
+            {
+                request.WriteHexString("00 00 00 00 00 00 00 00");
+                if (liveView)
+                {
+                    // Get the image data from the live view feed
+                    request.WriteHexString("02 C0");
+                }
+                else
+                {
+                    // Get the image data from a regular photo taken by the camera
+                    request.WriteHexString("01 C0");
+                }
+                request.WriteHexString("FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 03 00 00 00");
+                return WIA.SendCommand(this, request.GetBuffer(), responseSize);
+            }
         }
     }
 }

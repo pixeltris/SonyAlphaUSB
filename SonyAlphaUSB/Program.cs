@@ -27,13 +27,14 @@ namespace SonyAlphaUSB
             {
                 if (camera.Connect())
                 {
-                    while (true)
+                    //camera.CapturePhoto();
+                    /*while (true)
                     {
                         camera.ModifyFNumber(-100);
                         System.Threading.Thread.Sleep(5000);
                         camera.ModifyFNumber(100);
                         System.Threading.Thread.Sleep(5000);
-                    }
+                    }*/
                 }
             }
         }

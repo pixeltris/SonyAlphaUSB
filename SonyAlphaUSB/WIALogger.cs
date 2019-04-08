@@ -60,16 +60,59 @@ namespace SonyAlphaUSB
                                 break;
                             case OpCodes.MainSetting:
                                 inPacket.Index = 10;
-                                Log("MainSetting (" + inPacket.ReadUInt16() + ") " + inPacket);
+                                ushort mainSettingId = inPacket.ReadUInt16();
+                                string mainSettingName = ((MainSettingIds)mainSettingId).ToString();
+                                int temp1;
+                                if (!int.TryParse(mainSettingName, out temp1))
+                                {
+                                    mainSettingName = "Unknown";
+                                }
+                                Log("MainSetting (" + mainSettingId + " / " + mainSettingName + ") " + inPacket);
+                                Log("Response: " + outPacket);
                                 break;
                             case OpCodes.SubSetting:
                                 inPacket.Index = 10;
-                                Log("SubSetting (" + inPacket.ReadUInt16() + ") " + inPacket);
+                                ushort subSettingId = inPacket.ReadUInt16();
+                                string subSettingName = ((SubSettingIds)subSettingId).ToString();
+                                int temp2;
+                                if (!int.TryParse(subSettingName, out temp2))
+                                {
+                                    mainSettingName = "Unknown";
+                                }
+                                Log("SubSetting (" + subSettingId + " / " + subSettingName + ") " + inPacket);
+                                Log("Response: " + outPacket);
                                 break;
-                            case (OpCodes)0x9209:
-                            case (OpCodes)0x1008:
-                            case (OpCodes)0x1009:
-                                // image data related
+                            case (OpCodes)0x9209://camera state
+                                //LogImg("op(" + inPacket.Opcode + ")(in) " + inPacket);
+                                //LogImg("op(" + inPacket.Opcode + ")(out) " + outPacket);
+                                break;
+                            case OpCodes.GetImageInfo:
+                                inPacket.Index = 10;
+                                byte imageType = inPacket.ReadByte();
+                                if (imageType != 1 && imageType != 2)//1=photo, 2=live view
+                                {
+                                    Log("Unknown GetImageInfo type " + imageType);
+                                }
+                                outPacket.Index = 32;
+                                short numImages = outPacket.ReadInt16();//Num images?
+                                if (numImages > 0)
+                                {
+                                    int imageInfoUnk = outPacket.ReadInt32();//14337(01 38 00 00)
+                                    int imageSizeInBytes = outPacket.ReadInt32();
+                                    if (imageInfoUnk != 14337)
+                                    {
+                                        Log("Unknown GetImageInfo value " + imageInfoUnk + " - " + outPacket);
+                                    }
+                                    outPacket.Index = 82;
+                                    string imageName = outPacket.ReadFixedString(outPacket.ReadByte(), Encoding.Unicode);
+
+                                    if (imageType == 1)
+                                    {
+                                        Log("Captured photo!");
+                                    }
+                                }
+                                break;
+                            case OpCodes.GetImageData:
                                 break;
                             default:
                                 Log("Unknown request " + inPacket.Opcode);
@@ -93,6 +136,11 @@ namespace SonyAlphaUSB
                 Console.WriteLine(msg);
             }
             System.IO.File.AppendAllText("WIALogger.txt", "[" + DateTime.Now.TimeOfDay + "] " + msg + Environment.NewLine);
+        }
+
+        private static void LogImg(string msg)
+        {
+            System.IO.File.AppendAllText("WIALoggerImg.txt", "[" + DateTime.Now.TimeOfDay + "] " + msg + Environment.NewLine);
         }
 
         public static int DllMain(string arg)

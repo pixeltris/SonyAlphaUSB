@@ -17,6 +17,16 @@ namespace SonyAlphaUSB
         
         MainSetting = 37383,//07 92
         SubSetting = 37381,//05 92
+
+        /// <summary>
+        /// Image info for the live view / captured photo
+        /// </summary>
+        GetImageInfo = 4104,//08 10
+
+        /// <summary>
+        /// Image data for the live view / captured photo
+        /// </summary>
+        GetImageData = 4105,//09 10
     }
 
     public enum MainSettingIds
@@ -25,8 +35,33 @@ namespace SonyAlphaUSB
         EV = 20496,//10 50
         Flash = 53760,//00 D2
         ISO = 53790,//1E D2
+
+        /// <summary>
+        /// The AEL button locks the exposure (AE lock). Use this button to shoot images in the following situations.
+        /// - When you want to set the focus and the exposure separately.
+        /// - When you want to shoot images continuously with a fixed exposure.
+        /// </summary>
         AEL = 53955,//C3 D2
+
+        /// <summary>
+        /// The FEL button locks the flash level (FEL lock). Use this button to shoot different subjects with the same brightness.
+        /// </summary>
         FEL = 53961,//C9 D2
+
+        /// <summary>
+        /// Capture a still image
+        /// </summary>
+        CapturePhoto1 = 53953,//C1 D2
+
+        /// <summary>
+        /// Capture a still image
+        /// </summary>
+        CapturePhoto2 = 53954,//C2 D2
+
+        /// <summary>
+        /// Start / stop recording videos
+        /// </summary>
+        RecordVideo = 53960,//C8 D2
     }
 
     public enum SubSettingIds

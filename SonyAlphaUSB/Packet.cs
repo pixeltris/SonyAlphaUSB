@@ -167,67 +167,132 @@ namespace SonyAlphaUSB
 
         public byte ReadByte()
         {
+            if (Index >= Length)
+            {
+                InvalidRead = true;
+                return (byte)0;
+            }
             return reader.ReadByte();
         }
 
         public sbyte ReadSByte()
         {
+            if (Index >= Length)
+            {
+                InvalidRead = true;
+                return (sbyte)0;
+            }
             return reader.ReadSByte();
         }
 
         public bool ReadBool()
         {
-            return reader.ReadBoolean();
+            return ReadByte() != 0;
         }
 
         public short ReadInt16()
         {
+            if (Index + 1 >= Length)
+            {
+                InvalidRead = true;
+                return (short)0;
+            }
             return reader.ReadInt16();
         }
 
         public ushort ReadUInt16()
         {
+            if (Index + 1 >= Length)
+            {
+                InvalidRead = true;
+                return (ushort)0;
+            }
             return reader.ReadUInt16();
         }
 
         public int ReadInt32()
         {
+            if (Index + 3 >= Length)
+            {
+                InvalidRead = true;
+                return 0;
+            }
             return reader.ReadInt32();
         }
 
         public uint ReadUInt32()
         {
+            if (Index + 3 >= Length)
+            {
+                InvalidRead = true;
+                return (uint)0;
+            }
             return reader.ReadUInt32();
         }
 
         public long ReadInt64()
         {
+            if (Index + 7 >= Length)
+            {
+                InvalidRead = true;
+                return 0;
+            }
             return reader.ReadInt64();
         }
 
         public ulong ReadUInt64()
         {
+            if (Index + 7 >= Length)
+            {
+                InvalidRead = true;
+                return 0;
+            }
             return reader.ReadUInt64();
         }
 
         public float ReadSingle()
         {
+            if (Index + 3 >= Length)
+            {
+                return 0;
+            }
             return reader.ReadSingle();
         }
 
         public double ReadDouble()
         {
+            if (Index + 7 >= Length)
+            {
+                return 0;
+            }
             return reader.ReadDouble();
         }
 
         public byte[] ReadBytes(int count)
         {
+            bool invalidRead = Index + count > Length;
+            if (count < 0 || invalidRead)
+            {
+                if (count > 0 && invalidRead)
+                {
+                    InvalidRead = true;
+                }
+                return null;
+            }
             return reader.ReadBytes(count);
         }
 
         public byte[] ReadBytes(int prefixLength, int count)
         {
-            return ReadBytes(prefixLength, count);
+            long length = 0;
+            switch (prefixLength)
+            {
+                case 1: length = ReadByte(); break;
+                default:
+                case 2: length = ReadInt16(); break;
+                case 4: length = ReadInt32(); break;
+            }
+            return ReadBytes(count);
         }
 
         public string ReadString()
@@ -280,7 +345,7 @@ namespace SonyAlphaUSB
                 }
                 return string.Empty;
             }
-            return encoding.GetString(ReadBytes(totalLength));
+            return encoding.GetString(ReadBytes(totalLength)).TrimEnd('\0');
         }
 
         public string ReadCString()
