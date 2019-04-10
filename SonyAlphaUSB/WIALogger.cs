@@ -34,6 +34,12 @@ namespace SonyAlphaUSB
         static HashSet<int> inOpcodes = new HashSet<int>();
         static HashSet<int> outOpcodes = new HashSet<int>();
 
+        static HashSet<ushort> availableMainSettingIds = new HashSet<ushort>();
+        static HashSet<ushort> availableSubSettingIds = new HashSet<ushort>();
+
+        static byte[] lastCameraStateBuffer = null;
+        static Dictionary<ushort, byte[]> lastCameraStateValues = new Dictionary<ushort, byte[]>();
+
         private static HRESULT OnEscape(IntPtr thisPtr, int dwEscapeCode, IntPtr lpInData, int cbInDataSize, IntPtr pOutData, int dwOutDataSize, out int pdwActualDataSize)
         {
             HRESULT result = EscapeOriginal(thisPtr, dwEscapeCode, lpInData, cbInDataSize, pOutData, dwOutDataSize, out pdwActualDataSize);
@@ -53,62 +59,395 @@ namespace SonyAlphaUSB
                         switch ((OpCodes)inPacket.Opcode)
                         {
                             case OpCodes.Connect:
-                                Log("Connect " + inPacket);
+                                {
+                                    Log("Connect " + inPacket);
+                                }
                                 break;
                             case OpCodes.SettingsList:
-                                Log("SettingsList " + inPacket);
+                                {
+                                    outPacket.Index = 30;
+                                    ushort unk = outPacket.ReadUInt16();//200?
+
+                                    availableMainSettingIds.Clear();
+                                    availableSubSettingIds.Clear();
+
+                                    int mainSettingsCount = outPacket.ReadInt32();
+                                    for (int i = 0; i < mainSettingsCount; i++)
+                                    {
+                                        availableMainSettingIds.Add(outPacket.ReadUInt16());
+                                    }
+
+                                    int subSettingsCount = outPacket.ReadInt32();
+                                    for (int i = 0; i < subSettingsCount; i++)
+                                    {
+                                        availableSubSettingIds.Add(outPacket.ReadUInt16());
+                                    }
+
+                                    Log("SettingsList (" + mainSettingsCount + " main settings, " + subSettingsCount + " sub settings)");
+                                }
                                 break;
                             case OpCodes.MainSetting:
-                                inPacket.Index = 10;
-                                ushort mainSettingId = inPacket.ReadUInt16();
-                                string mainSettingName = ((MainSettingIds)mainSettingId).ToString();
-                                int temp1;
-                                if (!int.TryParse(mainSettingName, out temp1))
                                 {
-                                    mainSettingName = "Unknown";
+                                    inPacket.Index = 10;
+                                    ushort mainSettingId = inPacket.ReadUInt16();
+                                    string mainSettingName = ((SettingIds)mainSettingId).ToString();
+                                    int temp1;
+                                    if (!int.TryParse(mainSettingName, out temp1))
+                                    {
+                                        mainSettingName = "Unknown";
+                                    }
+                                    Log("MainSetting (" + mainSettingId + " / " + mainSettingName + ") " + inPacket);
+                                    Log("Response: " + outPacket);
                                 }
-                                Log("MainSetting (" + mainSettingId + " / " + mainSettingName + ") " + inPacket);
-                                Log("Response: " + outPacket);
                                 break;
                             case OpCodes.SubSetting:
-                                inPacket.Index = 10;
-                                ushort subSettingId = inPacket.ReadUInt16();
-                                string subSettingName = ((SubSettingIds)subSettingId).ToString();
-                                int temp2;
-                                if (!int.TryParse(subSettingName, out temp2))
                                 {
-                                    mainSettingName = "Unknown";
+                                    inPacket.Index = 10;
+                                    ushort subSettingId = inPacket.ReadUInt16();
+                                    string subSettingName = ((SettingIds)subSettingId).ToString();
+                                    int temp2;
+                                    if (!int.TryParse(subSettingName, out temp2))
+                                    {
+                                        subSettingName = "Unknown";
+                                    }
+                                    Log("SubSetting (" + subSettingId + " / " + subSettingName + ") " + inPacket);
+                                    Log("Response: " + outPacket);
                                 }
-                                Log("SubSetting (" + subSettingId + " / " + subSettingName + ") " + inPacket);
-                                Log("Response: " + outPacket);
                                 break;
-                            case (OpCodes)0x9209://camera state
-                                //LogImg("op(" + inPacket.Opcode + ")(in) " + inPacket);
-                                //LogImg("op(" + inPacket.Opcode + ")(out) " + outPacket);
+                            case OpCodes.CameraState:
+                                {
+                                    byte[] cameraStateBuffer = outPacket.GetBuffer();
+                                    if (lastCameraStateBuffer == null || !lastCameraStateBuffer.SequenceEqual(cameraStateBuffer))
+                                    {
+                                        lastCameraStateBuffer = cameraStateBuffer;
+                                        Log("CameraStateUpdate " + outPacket);
+
+                                        outPacket.Index = 30;
+                                        int numSettings = outPacket.ReadInt32();
+                                        int unk = outPacket.ReadInt32();
+                                        Debug.Assert(unk == 0);//always 0?
+
+                                        int prevSettingId = 0;
+
+                                        for (int i = 0; i < numSettings; i++)
+                                        {
+                                            ushort settingId = outPacket.ReadUInt16();
+                                            int currentDataStartIndex = outPacket.Index;
+                                            bool knownSetting = true;
+
+                                            if (availableMainSettingIds.Contains(settingId) ||
+                                                availableSubSettingIds.Contains(settingId))
+                                            {
+                                                switch ((SettingIds)settingId)
+                                                {
+                                                    case SettingIds._Unk5004:
+                                                        //04 50 02 00 01 00 02 03 02 0A 00 01 02 03 04 10 13 14 12 20 23
+                                                        outPacket.Skip(19);
+                                                        break;
+                                                    case SettingIds._Unk5005:
+                                                        //05 50 04 00 01 01 02 00 12 80 02 0E 00 02 00 04 00 11 80 10 80 06 00 01 80 02 80 03 80 04 80 30 80 12 80 20 80 21 80 22 80
+                                                        outPacket.Skip(39);
+                                                        break;
+                                                    case SettingIds.FNumber:
+                                                        {
+                                                            //07 50 04 00 00 01 FF FF 5E 01 01 00 00 FF FF 01 00
+                                                            //outPacket.Skip(15);
+                                                            outPacket.Skip(6);
+                                                            ushort fNumber = outPacket.ReadUInt16();
+                                                            outPacket.Skip(7);
+                                                            Log("FNumber: " + ((float)fNumber / 100));
+                                                        }
+                                                        break;
+                                                    case SettingIds._Unk500A:
+                                                        //0A 50 04 00 00 02 01 00 01 00 02 06 00 01 00 02 00 04 80 05 80 06 80 09 80
+                                                        outPacket.Skip(23);
+                                                        break;
+                                                    case SettingIds._Unk500B:
+                                                        //0B 50 04 00 00 02 01 00 01 80 02 06 00 01 80 02 80 04 80 05 80 03 80 06 80
+                                                        outPacket.Skip(23);
+                                                        break;
+                                                    case SettingIds._Unk500C:
+                                                        //0C 50 04 00 00 00 01 00 02 00 02 0B 00 02 00 01 00 04 00 03 00 05 00 01 80 03 80 31 80 32 80 41 80 42 80
+                                                        outPacket.Skip(33);
+                                                        break;
+                                                    case SettingIds._Unk500E:
+                                                        //0E 50 04 00 00 02 01 00 51 80 02 14 00 00 80 02 00 03 00 04 00 01 00 50 80 51 80 52 80 53 80 84 80 85 80 86 80 87 80 07 00 11 80 15 80 14 80 12 80 13 80 17 80
+                                                        outPacket.Skip(51);
+                                                        break;
+                                                    case SettingIds.EV:
+                                                        //10 50 03 00 00 01 00 00 00 00 02 29 00 00 00 88 13 5C 12 94 11 CC 10 A0 0F 74 0E AC 0D E4 0C B8 0B 8C 0A C4 09 FC 08 D0 07 A4 06 DC 05 14 05 E8 03 BC 02 F4 01 2C 01 D4 FE 0C FE 44 FD 18 FC EC FA 24 FA 5C F9 30 F8 04 F7 3C F6 74 F5 48 F4 1C F3 54 F2 8C F1 60 F0 34 EF 6C EE A4 ED 78 EC
+                                                        outPacket.Skip(93);
+                                                        break;
+                                                    case SettingIds._Unk5013:
+                                                        //13 50 04 00 01 00 01 00 01 00 02 32 00 01 00 10 80 02 00 15 80 12 80 05 80 03 80 04 80 08 80 09 80 0C 80 0D 80 0E 80 0F 80 37 83 37 85 37 89 57 83 57 85 57 89 77 83 77 85 77 89 11 83 11 85 11 89 21 83 21 85 31 83 31 85 36 83 36 85 36 89 56 83 56 85 56 89 76 83 76 85 76 89 10 83 10 85 10 89 20 83 20 85 30 83 30 85 18 80 28 80 19 80 29 80
+                                                        outPacket.Skip(111);
+                                                        break;
+                                                    case SettingIds.Flash:
+                                                        //00 D2 03 00 00 01 00 00 00 00 02 19 00 00 00 B8 0B 8C 0A C4 09 FC 08 D0 07 A4 06 DC 05 14 05 E8 03 BC 02 F4 01 2C 01 D4 FE 0C FE 44 FD 18 FC EC FA 24 FA 5C F9 30 F8 04 F7 3C F6 74 F5 48 F4
+                                                        outPacket.Skip(61);
+                                                        break;
+                                                    case SettingIds._UnkD201:
+                                                        //01 D2 02 00 01 01 01 1F 02 07 00 01 1F 11 12 13 14 15
+                                                        outPacket.Skip(16);
+                                                        break;
+                                                    case SettingIds._UnkD203:
+                                                        //03 D2 02 00 01 01 04 01 02 03 00 01 02 03
+                                                        outPacket.Skip(12);
+                                                        break;
+                                                    case SettingIds._UnkD20D:
+                                                        //0D D2 06 00 00 02 FF FF FF FF 32 00 01 00 01 00 00 00 00 FF FF FF FF 01 00 00 00
+                                                        outPacket.Skip(25);
+                                                        break;
+                                                    case SettingIds._UnkD20E:
+                                                        //0E D2 02 00 00 02 01 0F 02 10 00 01 02 03 0B 08 09 0A 04 0C 05 0D 06 0E 07 0F 10
+                                                        outPacket.Skip(25);
+                                                        break;
+                                                    case SettingIds._UnkD20F:
+                                                        //0F D2 04 00 01 01 7C 15 88 13 01 C4 09 AC 26 64 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD210:
+                                                        //10 D2 02 00 01 01 80 C0 01 A4 DC 01
+                                                        outPacket.Skip(10);
+                                                        break;
+                                                    case SettingIds._UnkD211:
+                                                        //11 D2 02 00 01 01 01 01 02 02 00 01 02
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds._UnkD212:
+                                                        //12 D2 02 00 00 01 00 00 01 00 0F 01
+                                                        outPacket.Skip(10);
+                                                        break;
+                                                    case SettingIds._UnkD213:
+                                                        //13 D2 02 00 00 02 01 01 02 06 00 01 02 03 05 06 07
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD214:
+                                                        //14 D2 06 00 00 01 FF FF FF FF FF FF FF FF 01 00 00 00 00 FF FF FF FF 01 00 00 00
+                                                        outPacket.Skip(25);
+                                                        break;
+                                                    case SettingIds._UnkD215:
+                                                        //15 D2 04 00 00 01 00 00 00 00 01 00 00 FF FF 01 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD217:
+                                                        //17 D2 02 00 00 01 01 01 02 02 00 02 01
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds._UnkD218:
+                                                        //18 D2 01 00 00 02 FF 5C 01 FF 64 01
+                                                        outPacket.Skip(10);
+                                                        break;
+                                                    case SettingIds._UnkD219:
+                                                        //19 D2 02 00 00 02 01 01 02 02 00 02 01 
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds._UnkD21B:
+                                                        //1B D2 04 00 01 01 00 80 00 80 02 10 00 00 80 01 80 02 80 03 80 04 80 05 80 10 80 20 80 21 80 30 80 40 80 50 80 51 80 52 80 53 80 60 80
+                                                        outPacket.Skip(43);
+                                                        break;
+                                                    case SettingIds._UnkD21C:
+                                                        //1C D2 02 00 01 01 80 C0 01 A4 DC 02
+                                                        outPacket.Skip(10);
+                                                        break;
+                                                    case SettingIds._UnkD21D:
+                                                        //1D D2 02 00 00 02 00 00 01 00 02 01
+                                                        outPacket.Skip(10);
+                                                        break;
+                                                    case SettingIds.ISO:
+                                                        //1E D2 06 00 00 01 FF FF FF 00 FF FF FF 00 02 59 00 FF FF FF 00 19 00 00 00 32 00 00 00 40 00 00 00 50 00 00 00 64 00 00 00 7D 00 00 00 A0 00 00 00 C8 00 00 00 FA 00 00 00 40 01 00 00 90 01 00 00 F4 01 00 00 80 02 00 00 20 03 00 00 E8 03 00 00 E2 04 00 00 40 06 00 00 D0 07 00 00 C4 09 00 00 80 0C 00 00 A0 0F 00 00 88 13 00 00 00 19 00 00 40 1F 00 00 10 27 00 00 00 32 00 00 80 3E 00 00 20 4E 00 00 00 64 00 00 00 7D 00 00 40 9C 00 00 00 C8 00 00 00 FA 00 00 80 38 01 00 00 90 01 00 00 F4 01 00 00 71 02 00 00 20 03 00 00 E8 03 00 00 E2 04 00 00 40 06 00 FF FF FF 01 19 00 00 01 32 00 00 01 40 00 00 01 50 00 00 01 64 00 00 01 7D 00 00 01 A0 00 00 01 C8 00 00 01 FA 00 00 01 40 01 00 01 90 01 00 01 F4 01 00 01 80 02 00 01 20 03 00 01 E8 03 00 01 E2 04 00 01 40 06 00 01 D0 07 00 01 C4 09 00 01 80 0C 00 01 A0 0F 00 01 88 13 00 01 00 19 00 01 40 1F 00 01 10 27 00 01 00 32 00 01 80 3E 00 01 00 64 00 01 00 C8 00 01 00 90 01 01 00 20 03 01 00 40 06 01 FF FF FF 02 64 00 00 02 C8 00 00 02 90 01 00 02 20 03 00 02 40 06 00 02 80 0C 00 02 00 19 00 02 00 32 00 02 00 64 00 02 00 C8 00 02 00 90 01 02 00 20 03 02 00 40 06 02
+                                                        outPacket.Skip(371);
+                                                        break;
+                                                    case SettingIds._UnkD21F:
+                                                        //1F D2 02 00 00 01 01 01 02 02 00 02 01
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds._UnkD221:
+                                                        //21 D2 02 00 01 01 00 00 02 03 00 00 01 02
+                                                        outPacket.Skip(12);
+                                                        break;
+                                                    case SettingIds._UnkD222:
+                                                        //22 D2 04 00 00 01 00 00 11 00 02 02 00 01 00 11 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD22C:
+                                                        //2C D2 04 00 01 01 00 00 01 00 02 07 00 01 00 02 00 03 00 01 01 02 01 03 01 04 01
+                                                        outPacket.Skip(25);
+                                                        break;
+                                                    case SettingIds._UnkD22D:
+                                                        //2D D2 02 00 00 02 00 00 02 03 00 00 01 02
+                                                        outPacket.Skip(12);
+                                                        break;
+                                                    case SettingIds._UnkD22E:
+                                                        //2E D2 04 00 00 02 00 00 3B 00 02 00 00
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds._UnkD22F:
+                                                        //2F D2 04 00 00 02 00 00 00 00 02 00 00
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds._UnkD230:
+                                                        //30 D2 06 00 00 02 00 00 00 00 F0 00 40 01 02 00 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD231:
+                                                        //31 D2 02 00 01 00 00 01 02 02 00 01 02
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds._UnkD232:
+                                                        //32 D2 06 00 01 00 00 00 00 00 B4 00 40 01 02 00 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD233:
+                                                        //33 D2 02 00 00 00 00 00 02 02 00 00 01
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds._UnkD235:
+                                                        //35 D2 02 00 00 01 00 01 02 02 00 00 01
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds._UnkD236:
+                                                        //36 D2 02 00 00 01 00 01 02 02 00 00 01
+                                                        outPacket.Skip(11);
+                                                        break;
+                                                    case SettingIds.CapturePhoto1:
+                                                        //C1 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds.CapturePhoto2:
+                                                        //C2 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds.AEL:
+                                                        //C3 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2C5:
+                                                        //C5 D2 04 00 83 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2C7:
+                                                        //C7 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds.RecordVideo:
+                                                        //C8 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds.FEL:
+                                                        //C9 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2CB:
+                                                        //CB D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2CC:
+                                                        //CC D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2CD:
+                                                        //CD D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2CE:
+                                                        //CE D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2CF:
+                                                        //CF D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2D0:
+                                                        //D0 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2D1:
+                                                        //D1 D2 03 00 82 01 00 00 00 00 01 F9 FF 07 00 01 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2D2:
+                                                        //D2 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2D3:
+                                                        //D3 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    case SettingIds._UnkD2D4:
+                                                        //D4 D2 04 00 81 01 01 00 01 00 02 02 00 01 00 02 00
+                                                        outPacket.Skip(15);
+                                                        break;
+                                                    default:
+                                                        knownSetting = false;
+                                                        break;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                knownSetting = false;
+                                            }
+
+                                            int currentDataEndIndex = outPacket.Index;
+                                            string settingIdHex = outPacket.ToString(currentDataStartIndex - 2, 2);
+
+                                            if (!knownSetting || currentDataStartIndex == currentDataEndIndex)
+                                            {
+                                                string prevSettingIdHex;
+                                                using (Packet p = new Packet())
+                                                {
+                                                    p.WriteUInt16((ushort)prevSettingId);
+                                                    prevSettingIdHex = p.ToString();
+                                                }
+
+                                                Log("Couldn't determine the length of the camera state data (" + settingIdHex + ") prev(" + prevSettingIdHex + ")");
+                                                break;
+                                            }
+                                            else 
+                                            {
+                                                outPacket.Index = currentDataStartIndex;
+                                                byte[] settingData = outPacket.ReadBytes(currentDataEndIndex - currentDataStartIndex);
+                                                byte[] lastSettingData;
+                                                if (lastCameraStateValues.TryGetValue(settingId, out lastSettingData) &&
+                                                    !lastSettingData.SequenceEqual(settingData))
+                                                {
+                                                    Log("Setting (" + (SettingIds)settingId + " / " + settingIdHex + ") changed");
+                                                    Log(Packet.ToHexString(settingData));
+                                                }
+                                                lastCameraStateValues[settingId] = settingData;
+                                                outPacket.Index = currentDataEndIndex;
+                                            }
+
+                                            prevSettingId = settingId;
+                                        }
+                                    }
+                                }
                                 break;
                             case OpCodes.GetImageInfo:
-                                inPacket.Index = 10;
-                                byte imageType = inPacket.ReadByte();
-                                if (imageType != 1 && imageType != 2)//1=photo, 2=live view
                                 {
-                                    Log("Unknown GetImageInfo type " + imageType);
-                                }
-                                outPacket.Index = 32;
-                                short numImages = outPacket.ReadInt16();//Num images?
-                                if (numImages > 0)
-                                {
-                                    int imageInfoUnk = outPacket.ReadInt32();//14337(01 38 00 00)
-                                    int imageSizeInBytes = outPacket.ReadInt32();
-                                    if (imageInfoUnk != 14337)
+                                    inPacket.Index = 10;
+                                    byte imageType = inPacket.ReadByte();
+                                    if (imageType != 1 && imageType != 2)//1=photo, 2=live view
                                     {
-                                        Log("Unknown GetImageInfo value " + imageInfoUnk + " - " + outPacket);
+                                        Log("Unknown GetImageInfo type " + imageType);
                                     }
-                                    outPacket.Index = 82;
-                                    string imageName = outPacket.ReadFixedString(outPacket.ReadByte(), Encoding.Unicode);
-
-                                    if (imageType == 1)
+                                    outPacket.Index = 32;
+                                    short numImages = outPacket.ReadInt16();//Num images?
+                                    if (numImages > 0)
                                     {
-                                        Log("Captured photo!");
+                                        int imageInfoUnk = outPacket.ReadInt32();//14337(01 38 00 00)
+                                        int imageSizeInBytes = outPacket.ReadInt32();
+                                        if (imageInfoUnk != 14337)
+                                        {
+                                            Log("Unknown GetImageInfo value " + imageInfoUnk + " - " + outPacket);
+                                        }
+                                        outPacket.Index = 82;
+                                        string imageName = outPacket.ReadFixedString(outPacket.ReadByte(), Encoding.Unicode);
+
+                                        if (imageType == 1)
+                                        {
+                                            Log("Captured photo!");
+                                        }
                                     }
                                 }
                                 break;
@@ -136,11 +475,6 @@ namespace SonyAlphaUSB
                 Console.WriteLine(msg);
             }
             System.IO.File.AppendAllText("WIALogger.txt", "[" + DateTime.Now.TimeOfDay + "] " + msg + Environment.NewLine);
-        }
-
-        private static void LogImg(string msg)
-        {
-            System.IO.File.AppendAllText("WIALoggerImg.txt", "[" + DateTime.Now.TimeOfDay + "] " + msg + Environment.NewLine);
         }
 
         public static int DllMain(string arg)

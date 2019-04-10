@@ -131,19 +131,19 @@ namespace SonyAlphaUSB
 
         public void ModifyFNumber(short modifyAmount)
         {
-            DoMainSettingI16(MainSettingIds.FNumber, modifyAmount);
+            DoMainSettingI16(SettingIds.FNumber, modifyAmount);
         }
         
         public void CapturePhoto()
         {
             // NOTE: The camera always wants to send the data over to the PC. Is there any way to do it without transfer?
-            DoMainSettingI16(MainSettingIds.CapturePhoto1, 2);
-            DoMainSettingI16(MainSettingIds.CapturePhoto2, 2);//takes the photo
-            DoMainSettingI16(MainSettingIds.CapturePhoto1, 1);
-            DoMainSettingI16(MainSettingIds.CapturePhoto2, 1);
+            DoMainSettingI16(SettingIds.CapturePhoto1, 2);
+            DoMainSettingI16(SettingIds.CapturePhoto2, 2);//takes the photo
+            DoMainSettingI16(SettingIds.CapturePhoto1, 1);
+            DoMainSettingI16(SettingIds.CapturePhoto2, 1);
         }
 
-        private bool DoMainSettingI16(MainSettingIds id, short amount)
+        private bool DoMainSettingI16(SettingIds id, short amount)
         {
             using (Packet request = new Packet(OpCodes.MainSetting))
             {
