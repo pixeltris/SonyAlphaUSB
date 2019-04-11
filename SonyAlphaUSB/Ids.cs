@@ -18,7 +18,7 @@ namespace SonyAlphaUSB
         MainSetting = 37383,//07 92
         SubSetting = 37381,//05 92
 
-        CameraState = 37385,//09 92
+        Settings = 37385,//09 92
 
         /// <summary>
         /// Image info for the live view / captured photo
@@ -51,7 +51,9 @@ namespace SonyAlphaUSB
 
         _UnkD201 = 0xD201,//01 D2
         _UnkD203 = 0xD203,//03 D2
-        _UnkD20D = 0xD20D,//0D D2
+        
+        ShutterSpeed = 0xD20D,//0D D2
+
         _UnkD20E = 0xD20E,//0E D2
         _UnkD20F = 0xD20F,//0F D2
         _UnkD210 = 0xD210,//10 D2
@@ -72,7 +74,9 @@ namespace SonyAlphaUSB
         _UnkD21F = 0xD21F,//1F D2
         _UnkD221 = 0xD221,//21 D2
         _UnkD222 = 0xD222,//22 D2
-        _UnkD22C = 0xD22C,//2C D2
+
+        FocusArea = 0xD22C,//2C D2
+
         _UnkD22D = 0xD22D,//2D D2
         _UnkD22E = 0xD22E,//2E D2
         _UnkD22F = 0xD22F,//2F D2
@@ -124,7 +128,7 @@ namespace SonyAlphaUSB
         _UnkD2D3 = 0xD2D3,//D3 D2
         _UnkD2D4 = 0xD2D4,//D4 D2
     }
-    
+
     // Sony A7III main setting ids
     //04 50
     //05 50
@@ -187,4 +191,15 @@ namespace SonyAlphaUSB
     //D3 D2
     //D4 D2
     //D1 D2
+
+    public enum FocusAreaIds
+    {
+        Wide = 0x0001,
+        Zone = 0x0002,
+        Center = 0x0003,
+        FlexibleSlotS = 0x0101,
+        FlexibleSlotM = 0x0102,
+        FlexibleSlotL = 0x0103,
+        ExpandFlexibleSlot = 0x0104
+    }
 }

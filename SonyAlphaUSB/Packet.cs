@@ -669,6 +669,42 @@ namespace SonyAlphaUSB
             return str.Trim();
         }
 
+        public static string ToHexStringI16(short value)
+        {
+            using (Packet packet = new Packet())
+            {
+                packet.WriteInt16(value);
+                return packet.ToString();
+            }
+        }
+
+        public static string ToHexStringU16(ushort value)
+        {
+            using (Packet packet = new Packet())
+            {
+                packet.WriteUInt16(value);
+                return packet.ToString();
+            }
+        }
+
+        public static string ToHexStringI32(int value)
+        {
+            using (Packet packet = new Packet())
+            {
+                packet.WriteInt32(value);
+                return packet.ToString();
+            }
+        }
+
+        public static string ToHexStringU32(uint value)
+        {
+            using (Packet packet = new Packet())
+            {
+                packet.WriteUInt32(value);
+                return packet.ToString();
+            }
+        }
+
         public static byte[] FromHexString(string hex)
         {
             int discarded;
