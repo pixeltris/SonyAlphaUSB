@@ -154,7 +154,8 @@ namespace SonyAlphaUSB
                                                 {
                                                     case 1:
                                                         {
-                                                            outPacket.Skip(4);
+                                                            outPacket.Skip(3);
+                                                            setting.Value = outPacket.ReadByte();
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
                                                             {
@@ -169,7 +170,8 @@ namespace SonyAlphaUSB
                                                         break;
                                                     case 2:
                                                         {
-                                                            outPacket.Skip(4);
+                                                            outPacket.Skip(3);
+                                                            setting.Value = outPacket.ReadByte();
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
                                                             {
@@ -192,7 +194,8 @@ namespace SonyAlphaUSB
                                                         break;
                                                     case 3:
                                                         {
-                                                            outPacket.Skip(6);
+                                                            outPacket.Skip(4);
+                                                            setting.Value = outPacket.ReadUInt16();
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
                                                             {
@@ -216,7 +219,7 @@ namespace SonyAlphaUSB
                                                     case 4:
                                                         {
                                                             outPacket.Skip(4);
-                                                            setting.Value = outPacket.ReadInt16();
+                                                            setting.Value = outPacket.ReadUInt16();
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
                                                             {
@@ -242,8 +245,8 @@ namespace SonyAlphaUSB
                                                     case 6:
                                                         {
                                                             outPacket.Skip(6);
-                                                            setting.Value = outPacket.ReadInt16();
-                                                            setting.SubValue = outPacket.ReadInt16();
+                                                            setting.Value = outPacket.ReadUInt16();
+                                                            setting.SubValue = outPacket.ReadUInt16();
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
                                                             {
@@ -304,7 +307,7 @@ namespace SonyAlphaUSB
                                                         switch ((SettingIds)settingId)
                                                         {
                                                             case SettingIds.FNumber:
-                                                                Log((SettingIds)settingId + ": " + ((float)setting.Value / 100));
+                                                                Log((SettingIds)settingId + ": " + setting.AsFNumber());
                                                                 break;
                                                             case SettingIds.FocusArea:
                                                                 Log((SettingIds)settingId + ": " + (FocusAreaIds)setting.Value);
@@ -314,6 +317,48 @@ namespace SonyAlphaUSB
                                                                 break;
                                                             case SettingIds.ShutterSpeed:
                                                                 Log((SettingIds)settingId + ": " + setting.AsShutterSpeed());
+                                                                break;
+                                                            case SettingIds.BatteryInfo:
+                                                                Log((SettingIds)settingId + ": charge " + setting.AsBatteryCharge());
+                                                                break;
+                                                            case SettingIds.AEL_State:
+                                                                Log((SettingIds)settingId + ": " + setting.AsOnOff());
+                                                                break;
+                                                            case SettingIds.FocusAreaSpot:
+                                                                Log((SettingIds)settingId + ": x(" + setting.SubValue + ") y(" + setting.Value + ")");
+                                                                break;
+                                                            case SettingIds.LiveViewState:
+                                                                Log((SettingIds)settingId + " " + (setting.Value != 0 ? "ON" : "OFF"));
+                                                                break;
+                                                            case SettingIds.FocusState:
+                                                                Log((SettingIds)settingId + " " + (FocusState)setting.Value);
+                                                                break;
+                                                            case SettingIds.EV:
+                                                                Log((SettingIds)settingId + ": " + setting.AsEV());
+                                                                break;
+                                                            case SettingIds.FileFormat:
+                                                                Log((SettingIds)settingId + ": " + setting.AsImageFileFormat());
+                                                                break;
+                                                            case SettingIds.ImageSize:
+                                                                Log((SettingIds)settingId + ": " + setting.AsImageSize());
+                                                                break;
+                                                            case SettingIds.PictureEffect:
+                                                                Log((SettingIds)settingId + ": " + setting.AsPictureEffect());
+                                                                break;
+                                                            case SettingIds.DroHdr:
+                                                                Log((SettingIds)settingId + ": " + setting.AsDroHdr());
+                                                                break;
+                                                            case SettingIds.AspectRatio:
+                                                                Log((SettingIds)settingId + ": " + setting.AsAspectRatio());
+                                                                break;
+                                                            case SettingIds.FocusMode:
+                                                                Log((SettingIds)settingId + ": " + setting.AsFocusMode());
+                                                                break;
+                                                            case SettingIds.ShootingMode:
+                                                                Log((SettingIds)settingId + ": " + (ShootingMode)setting.Value);
+                                                                break;
+                                                            case SettingIds.WhiteBalance:
+                                                                Log((SettingIds)settingId + ": " + setting.AsWhiteBalance());
                                                                 break;
                                                         }
                                                     }
@@ -341,7 +386,7 @@ namespace SonyAlphaUSB
                                     {
                                         int imageInfoUnk = outPacket.ReadInt32();//14337(01 38 00 00)
                                         int imageSizeInBytes = outPacket.ReadInt32();
-                                        if (imageInfoUnk != 14337)
+                                        if (imageInfoUnk != 14337)//file format?
                                         {
                                             Log("Unknown GetImageInfo value " + imageInfoUnk + " - " + outPacket);
                                         }

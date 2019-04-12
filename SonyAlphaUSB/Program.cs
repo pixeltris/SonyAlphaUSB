@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using SonyAlphaUSB.Interop;
 
 namespace SonyAlphaUSB
 {
@@ -19,22 +19,39 @@ namespace SonyAlphaUSB
                         return;
                 }
             }
-            //WIALogger.Run();
-            //return;
 
-            SonyCamera[] cameras = WIA.FindCameras();
-            foreach (SonyCamera camera in cameras)
+            List<SonyCamera> cameras = WIA.FindCameras().ToList();
+            foreach (SonyCamera camera in new List<SonyCamera>(cameras))
             {
-                if (camera.Connect())
+                if (!camera.Connect())
+                {
+                    cameras.Remove(camera);
+                }
+                else
                 {
                     //camera.CapturePhoto();
-                    /*while (true)
-                    {
-                        camera.ModifyFNumber(-100);
-                        System.Threading.Thread.Sleep(5000);
-                        camera.ModifyFNumber(100);
-                        System.Threading.Thread.Sleep(5000);
-                    }*/
+                    //camera.SetFocusMode(FocusMode.MF);
+                    //camera.SetFocusMode(FocusModeToggle.Manual);
+                }
+            }
+
+            Stopwatch stopwatch = new Stopwatch();
+            int updateDelay = 41;// 24fps
+            //int updateDelay = 33;// 30fps
+
+            while (true)
+            {
+                stopwatch.Restart();
+
+                foreach (SonyCamera camera in cameras)
+                {
+                    camera.Update();
+                }
+
+                while (stopwatch.ElapsedMilliseconds < updateDelay)
+                {
+                    // This may result in stuttering as sleep can take longer than requested (maybe use a Timer?)
+                    System.Threading.Thread.Sleep(1);
                 }
             }
         }
