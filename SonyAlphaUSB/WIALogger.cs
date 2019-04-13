@@ -42,6 +42,10 @@ namespace SonyAlphaUSB
         static byte[] lastCameraSettingsBuffer = null;
         static Dictionary<ushort, byte[]> lastCameraSettingsValues = new Dictionary<ushort, byte[]>();
 
+        static string modifiedValuesFiles = "SonyAlphaUsbLogger_Values.txt";
+        static DateTime modifiedValuesFileLastChanged;
+        static Dictionary<SettingIds, KeyValuePair<int, int>> modifiedValues = new Dictionary<SettingIds, KeyValuePair<int, int>>();
+
         private static HRESULT OnEscape(IntPtr thisPtr, int dwEscapeCode, IntPtr lpInData, int cbInDataSize, IntPtr pOutData, int dwOutDataSize, out int pdwActualDataSize)
         {
             HRESULT result = EscapeOriginal(thisPtr, dwEscapeCode, lpInData, cbInDataSize, pOutData, dwOutDataSize, out pdwActualDataSize);
@@ -119,8 +123,10 @@ namespace SonyAlphaUSB
                             case OpCodes.Settings:
                                 {
                                     byte[] cameraSettingsBuffer = outPacket.GetBuffer();
-                                    if (lastCameraSettingsBuffer == null || !lastCameraSettingsBuffer.SequenceEqual(cameraSettingsBuffer))
+                                    //if (lastCameraSettingsBuffer == null || !lastCameraSettingsBuffer.SequenceEqual(cameraSettingsBuffer))
                                     {
+                                        LoadModifiedValues();
+
                                         lastCameraSettingsBuffer = cameraSettingsBuffer;
                                         //Log("CameraSettingsUpdate " + outPacket);
 
@@ -155,6 +161,7 @@ namespace SonyAlphaUSB
                                                     case 1:
                                                         {
                                                             outPacket.Skip(3);
+                                                            TryModifyValue(setting.Id, pOutData, outPacket, 1, false);
                                                             setting.Value = outPacket.ReadByte();
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
@@ -171,6 +178,7 @@ namespace SonyAlphaUSB
                                                     case 2:
                                                         {
                                                             outPacket.Skip(3);
+                                                            TryModifyValue(setting.Id, pOutData, outPacket, 1, false);
                                                             setting.Value = outPacket.ReadByte();
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
@@ -195,7 +203,9 @@ namespace SonyAlphaUSB
                                                     case 3:
                                                         {
                                                             outPacket.Skip(4);
-                                                            setting.Value = outPacket.ReadUInt16();
+                                                            TryModifyValue(setting.Id, pOutData, outPacket, 2, false);
+                                                            // Should always be a signed value? If not make sure to make it signed for EV/Flash.
+                                                            setting.Value = outPacket.ReadInt16();
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
                                                             {
@@ -219,14 +229,15 @@ namespace SonyAlphaUSB
                                                     case 4:
                                                         {
                                                             outPacket.Skip(4);
+                                                            TryModifyValue(setting.Id, pOutData, outPacket, 2, false);
                                                             setting.Value = outPacket.ReadUInt16();
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
                                                             {
                                                                 case 1:
                                                                     outPacket.Skip(2);
-                                                                    setting.DecrementValue = outPacket.ReadInt16();// Decrement value
-                                                                    setting.IncrementValue = outPacket.ReadInt16();// Iecrement value
+                                                                    outPacket.ReadInt16();// Decrement value?
+                                                                    outPacket.ReadInt16();// Iecrement value?
                                                                     break;
                                                                 case 2:
                                                                     int num = outPacket.ReadUInt16();
@@ -245,6 +256,7 @@ namespace SonyAlphaUSB
                                                     case 6:
                                                         {
                                                             outPacket.Skip(6);
+                                                            TryModifyValue(setting.Id, pOutData, outPacket, 2, true);
                                                             setting.Value = outPacket.ReadUInt16();
                                                             setting.SubValue = outPacket.ReadUInt16();
                                                             byte subDataType = outPacket.ReadByte();
@@ -299,9 +311,6 @@ namespace SonyAlphaUSB
                                                 if (lastCameraSettingsValues.TryGetValue(settingId, out lastSettingData) &&
                                                     !lastSettingData.SequenceEqual(settingData))
                                                 {
-                                                    Log("Setting (" + (SettingIds)settingId + " / " + settingIdHex + ") changed");
-                                                    Log(Packet.ToHexString(settingData));
-
                                                     if (setting != null)
                                                     {
                                                         switch ((SettingIds)settingId)
@@ -322,7 +331,10 @@ namespace SonyAlphaUSB
                                                                 Log((SettingIds)settingId + ": charge " + setting.AsBatteryCharge());
                                                                 break;
                                                             case SettingIds.AEL_State:
-                                                                Log((SettingIds)settingId + ": " + setting.AsOnOff());
+                                                                Log((SettingIds)settingId + ": " + (setting.Value == 2 ? "ON" : "OFF"));
+                                                                break;
+                                                            case SettingIds.FEL_State:
+                                                                Log((SettingIds)settingId + ": " + (setting.Value == 2 ? "ON" : "OFF"));
                                                                 break;
                                                             case SettingIds.FocusAreaSpot:
                                                                 Log((SettingIds)settingId + ": x(" + setting.SubValue + ") y(" + setting.Value + ")");
@@ -335,6 +347,9 @@ namespace SonyAlphaUSB
                                                                 break;
                                                             case SettingIds.EV:
                                                                 Log((SettingIds)settingId + ": " + setting.AsEV());
+                                                                break;
+                                                            case SettingIds.Flash:
+                                                                Log((SettingIds)settingId + ": " + setting.AsFlash());
                                                                 break;
                                                             case SettingIds.FileFormat:
                                                                 Log((SettingIds)settingId + ": " + setting.AsImageFileFormat());
@@ -354,11 +369,63 @@ namespace SonyAlphaUSB
                                                             case SettingIds.FocusMode:
                                                                 Log((SettingIds)settingId + ": " + setting.AsFocusMode());
                                                                 break;
+                                                            case SettingIds.FocusModeToggleResponse:
+                                                                Log((SettingIds)settingId + ": " + setting.AsFocusModeToggleResponse());
+                                                                break;
                                                             case SettingIds.ShootingMode:
                                                                 Log((SettingIds)settingId + ": " + (ShootingMode)setting.Value);
                                                                 break;
                                                             case SettingIds.WhiteBalance:
                                                                 Log((SettingIds)settingId + ": " + setting.AsWhiteBalance());
+                                                                break;
+                                                            case SettingIds.WhiteBalanceColorTemp:
+                                                                Log((SettingIds)settingId + ": " + setting.AsWhiteBalanceColorTemp());
+                                                                break;
+                                                            case SettingIds.WhiteBalanceAB:
+                                                                Log((SettingIds)settingId + ": " + setting.AsWhiteBalanceAB());
+                                                                break;
+                                                            case SettingIds.WhiteBalanceGM:
+                                                                Log((SettingIds)settingId + ": " + setting.AsWhiteBalanceGM());
+                                                                break;
+                                                            case SettingIds.DriveMode:
+                                                                Log((SettingIds)settingId + ": " + setting.AsDriveMode());
+                                                                break;
+                                                            case SettingIds.UseLiveViewDisplayEffect:
+                                                                Log((SettingIds)settingId + ": " + (setting.Value == 1 ? "ON" : "OFF"));
+                                                                break;
+                                                            case SettingIds.FocusMagnifierState:
+                                                                Log((SettingIds)settingId + ": " + (setting.Value == 1 ? "ENABLED" : "DISABLED"));
+                                                                break;
+                                                            case SettingIds.FlashMode:
+                                                                Log((SettingIds)settingId + ": " + setting.AsFlashMode());
+                                                                break;
+                                                            case SettingIds.MeteringMode:
+                                                                Log((SettingIds)settingId + ": " + setting.AsMeteringMode());
+                                                                break;
+                                                            case SettingIds.FocusMagnifierRequest:
+                                                                Log((SettingIds)settingId + ": " + setting.Value);
+                                                                break;
+                                                            case SettingIds.FocusMagnifierResetRequest:
+                                                                Log((SettingIds)settingId + ": " + setting.Value);
+                                                                break;
+                                                            case SettingIds.FocusMagnifier:
+                                                                Log((SettingIds)settingId + ": " + setting.AsFocusMagnifier());
+                                                                break;
+                                                            case SettingIds.FocusMagnifierPhase:
+                                                                Log((SettingIds)settingId + ": " + (FocusMagnifierPhase)setting.Value);
+                                                                break;
+                                                            case SettingIds.FocusMagnifierPosition:
+                                                                Log((SettingIds)settingId + ": x(" + setting.SubValue + ") y(" + setting.Value + ")");
+                                                                break;
+                                                            case SettingIds.RecordVideoState:
+                                                                Log((SettingIds)settingId + ": " + (RecordVideoState)setting.Value);
+                                                                break;
+                                                            case SettingIds.PhotoTransferQueue:
+                                                                Log((SettingIds)settingId + ": " + setting.AsPhotoTransferQueue());
+                                                                break;
+                                                            default:
+                                                                Log("Setting (" + (SettingIds)settingId + " / " + settingIdHex + ") changed");
+                                                                Log(Packet.ToHexString(settingData));
                                                                 break;
                                                         }
                                                     }
@@ -415,6 +482,68 @@ namespace SonyAlphaUSB
                 }
             }
             return result;
+        }
+
+        private static void TryModifyValue(SettingIds settingId, IntPtr buffer, Packet packet, int dataSize, bool hasSubValue)
+        {
+            KeyValuePair<int, int> value;
+            if (modifiedValues.TryGetValue(settingId, out value))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    int val = i == 0 ? value.Key : value.Value;
+                    IntPtr ptr = buffer + packet.Index + (i == 0 ? 0 : dataSize);
+
+                    switch (dataSize)
+                    {
+                        case 1:
+                            Marshal.WriteByte(ptr, (byte)val);
+                            break;
+                        case 2:
+                            Marshal.WriteInt16(ptr, (short)val);
+                            break;
+                        case 4:
+                            Marshal.WriteInt32(ptr, val);
+                            break;
+                    }
+
+                    if (!hasSubValue)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        private static void LoadModifiedValues()
+        {
+            FileInfo fileInfo = new FileInfo(modifiedValuesFiles);
+            if (fileInfo.Exists && modifiedValuesFileLastChanged != fileInfo.LastWriteTimeUtc)
+            {
+                modifiedValuesFileLastChanged = fileInfo.LastWriteTimeUtc;
+                modifiedValues.Clear();
+                string[] lines = File.ReadAllLines(fileInfo.FullName);
+                foreach (string line in lines)
+                {
+                    string[] splitted = line.Split();
+                    if (splitted.Length > 1)
+                    {
+                        int settingId;
+                        int value;
+                        int subValue = 0;
+                        if (splitted[0].StartsWith("0x") &&
+                            int.TryParse(splitted[0].Substring(2), System.Globalization.NumberStyles.HexNumber, null, out settingId) &&
+                            int.TryParse(splitted[1], out value))
+                        {
+                            if (splitted.Length > 2)
+                            {
+                                int.TryParse(splitted[2], out subValue);
+                            }
+                            modifiedValues[(SettingIds)settingId] = new KeyValuePair<int, int>(value, subValue);
+                        }
+                    }
+                }
+            }
         }
 
         private static void Log(string msg)
@@ -682,6 +811,7 @@ namespace SonyAlphaUSB
                         // If we are at the entry point inject the dll and then restore the entry point instructions
                         if (context64.Rip == (ulong)entryPoint && DllInjector.Inject(pi.hProcess, loaderDll))
                         {
+                            Thread.Sleep(500);//add a delay as our C# code gets loaded on a seperate thread which can delay hooks
                             SuspendThread(pi.hThread);
 
                             IntPtr byteCount;

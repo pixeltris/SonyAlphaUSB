@@ -5,7 +5,6 @@ using System.Text;
 
 namespace SonyAlphaUSB
 {
-    // Are these big endian? Or an op/sub op?
     public enum OpCodes
     {
         Connect = 37377,//01 92
@@ -15,9 +14,19 @@ namespace SonyAlphaUSB
         /// </summary>
         SettingsList = 37378,//02 92
         
+        /// <summary>
+        /// A request to change a "main" setting. Watch the response of <see cref="OpCodes.Settings"/> for the change in value.
+        /// </summary>
         MainSetting = 37383,//07 92
+
+        /// <summary>
+        /// A request to change a "sub" setting. Watch the response of <see cref="OpCodes.Settings"/> for the change in value.
+        /// </summary>
         SubSetting = 37381,//05 92
 
+        /// <summary>
+        /// All of the camera setting values
+        /// </summary>
         Settings = 37385,//09 92
 
         /// <summary>
@@ -44,14 +53,18 @@ namespace SonyAlphaUSB
 
         FocusMode = 0x500A,//0A 50
         
-        _Unk500B = 0x500B,//0B 50
-        _Unk500C = 0x500C,//0C 50
+        MeteringMode = 0x500B,//0B 50
+
+        FlashMode = 0x500C,//0C 50
 
         ShootingMode = 0x500E,//0E 50
 
         EV = 0x5010,//10 50
 
-        _Unk5013 = 0x5013,//13 50
+        /// <summary>
+        /// The camera drive mode (single shooting, continuous shooting, etc)
+        /// </summary>
+        DriveMode = 0x5013,//13 50
 
         Flash = 0xD200,//00 D2
 
@@ -68,8 +81,9 @@ namespace SonyAlphaUSB
         ShutterSpeed = 0xD20D,//0D D2
 
         _UnkD20E = 0xD20E,//0E D2
-        _UnkD20F = 0xD20F,//0F D2
-        _UnkD210 = 0xD210,//10 D2
+        
+        WhiteBalanceColorTemp = 0xD20F,//0F D2
+        WhiteBalanceGM = 0xD210,//10 D2
 
         AspectRatio = 0xD211,//11 D2
 
@@ -81,9 +95,12 @@ namespace SonyAlphaUSB
         FocusState = 0xD213,//13 D2
 
         _UnkD214 = 0xD214,//14 D2
-        _UnkD215 = 0xD215,//15 D2
 
-        // This is the actual state (on/off) as opposed to the AEL button in the Remote UI
+        PhotoTransferQueue = 0xD215,//15 D2
+
+        /// <summary>
+        /// This is the actual state (on/off) as opposed to the AEL button in the Remote UI
+        /// </summary>
         AEL_State = 0xD217,//17 D2
 
         BatteryInfo = 0xD218,//18 D2
@@ -91,41 +108,49 @@ namespace SonyAlphaUSB
         _UnkD219 = 0xD219,//19 D2
 
         PictureEffect = 0xD21B,//1B D2
+        
+        WhiteBalanceAB = 0xD21C,//1C D2
 
-        _UnkD21C = 0xD21C,//1C D2
-        _UnkD21D = 0xD21D,//1D D2
+        RecordVideoState = 0xD21D,//1D D2
 
         ISO = 0xD21E,//1E D2
 
-        _UnkD21F = 0xD21F,//1F D2
+        /// <summary>
+        /// This is the actual state (on/off) as opposed to the FEL button in the Remote UI.
+        /// (if "on" this will show the FEL lock icon in the Remote UI (in the top right))
+        /// </summary>
+        FEL_State = 0xD21F,//1F D2
 
         LiveViewState = 0xD221,//21 D2
 
         _UnkD222 = 0xD222,//22 D2
 
         FocusArea = 0xD22C,//2C D2
+        
+        FocusMagnifierPhase = 0xD22D,//2D D2
 
-        _UnkD22D = 0xD22D,//2D D2
         _UnkD22E = 0xD22E,//2E D2
-        _UnkD22F = 0xD22F,//2F D2
-        _UnkD230 = 0xD230,//30 D2
-        _UnkD231 = 0xD231,//31 D2
+
+        FocusMagnifier = 0xD22F,//2F D2
+        FocusMagnifierPosition = 0xD230,//30 D2
+
+        UseLiveViewDisplayEffect = 0xD231,//31 D2
 
         FocusAreaSpot = 0xD232,//32 D2
 
         /// <summary>
-        /// Something related to focus? Seems to be 00 when AF-C, otherwise 01
-        /// 02 00 00 00 00 00 02 02 00 00 01 - AF-C
-        /// 02 00 00 01 00 01 02 02 00 00 01 - all other focus modes
+        /// Focus Magnifier button state in Remote UI (0=disabled, 1=enabled)
         /// </summary>
-        _UnkD233 = 0xD233,//33 D2
+        FocusMagnifierState = 0xD233,//33 D2
 
         /// <summary>
-        /// Signifies manual focus?
+        /// Signifies that MF/AF changed
         /// 02 00 00 01 00 01 02 02 00 00 01 - MF mode
         /// 02 00 00 00 00 00 02 02 00 00 01 - AF mode
+        /// (This is a response only. See FocusModeToggleResponse.)
         /// </summary>
-        _UnkD235 = 0xD235,//35 D2
+        FocusModeToggleResponse = 0xD235,//35 D2
+
         _UnkD236 = 0xD236,//36 D2
 
         /// <summary>
@@ -158,19 +183,29 @@ namespace SonyAlphaUSB
         /// </summary>
         FEL = 0xD2C9,//C9 D2
 
-        _UnkD2CB = 0xD2CB,//CB D2
-        _UnkD2CC = 0xD2CC,//CC D2
-        _UnkD2CD = 0xD2CD,//CD D2
-        _UnkD2CE = 0xD2CE,//CE D2
-        _UnkD2CF = 0xD2CF,//CF D2
-        _UnkD2D0 = 0xD2D0,//D0 D2
+        /// <summary>
+        /// A request to increment the focus magnifier value
+        /// </summary>
+        FocusMagnifierRequest = 0xD2CB,//CB D2
+
+        /// <summary>
+        /// A request to reset the focus magnifier value
+        /// </summary>
+        FocusMagnifierResetRequest = 0xD2CC,//CC D2
+
+        FocusMagnifierMoveUpRequest = 0xD2CD,//CD D2
+        FocusMagnifierMoveDownRequest = 0xD2CE,//CE D2
+        FocusMagnifierMoveLeftRequest = 0xD2CF,//CF D2
+        FocusMagnifierMoveRightRequest = 0xD2D0,//D0 D2
+
         _UnkD2D1 = 0xD2D1,//D1 D2
 
         /// <summary>
         /// Used to toggle AF/MF (1=MF, 2=AF).
-        /// Used to switch between MF/AF without modifying the current AF setting
+        /// Used to switch between MF/AF without modifying the current AF setting.
+        /// (This is a request only. See FocusModeToggleResponse)
         /// </summary>
-        FocusModeToggle = 0xD2D2,//D2 D2
+        FocusModeToggleRequest = 0xD2D2,//D2 D2
 
         _UnkD2D3 = 0xD2D3,//D3 D2
         _UnkD2D4 = 0xD2D4,//D4 D2
@@ -298,7 +333,6 @@ namespace SonyAlphaUSB
 
     public enum ImageSize
     {
-        // These are defined by the list in "03 D2"
         Large = 1,
         Medium = 2,
         Small = 3
@@ -382,24 +416,24 @@ namespace SonyAlphaUSB
     {
         //00 80 - AUTO
         //02 00 - P
-        //03 00 
+        //03 00 - A
         //04 00 - S
         //01 00 - M 
-        //50 80 
-        //51 80 - Movie
-        //52 80 
-        //53 80 
-        //84 80 - S&Q
-        //85 80 
-        //86 80 
-        //87 80 
+        //50 80 - Movie (P)
+        //51 80 - Movie (A)
+        //52 80 - Movie (S)
+        //53 80 - Movie (M)
+        //84 80 - S&Q (P)
+        //85 80 - S&Q (A)
+        //86 80 - S&Q (S)
+        //87 80 - S&Q (M)
         //07 00 - SCN
-        //11 80 
-        //15 80 
-        //14 80 
-        //12 80 
-        //13 80 
-        //17 80
+        //11 80 - Moving objects? (running person icon)
+        //15 80 - Flower icon
+        //14 80 - Mountains icon
+        //12 80 - Sun icon?
+        //13 80 - Moon icon
+        //17 80 - Moon icon with person
 
         M = 0x0001,
         P = 0x0002,
@@ -408,28 +442,21 @@ namespace SonyAlphaUSB
         SCN = 0x0007,
 
         AUTO = 0x8000,
-        Movie = 0x8051,
-        SQ = 0x8084//S&Q
+
+        Movie_P = 0x8050,
+        Movie_A = 0x8051,
+        Movie_S = 0x8052,
+        Movie_M = 0x8053,
+
+        //S&Q
+        SQ_P = 0x8084,
+        SQ_A = 0x8085,
+        SQ_S = 0x8086,
+        SQ_M = 0x8087,
     }
 
     public enum WhiteBalance
     {
-        //02 00 - Auto
-        //04 00 - Daylight
-        //11 80 - Shade
-        //10 80 - Cloudy
-        //06 00 - Incandescent
-        //01 80 - Fluor: Warm White
-        //02 80 - Fluor: Cool White
-        //03 80 - Fluor: Day White
-        //04 80 - Fluor: Daylight
-        //07 00 - Flash
-        //30 80 - Underwater Auto
-        //12 80 - C.Temp/Filter
-        //20 80 - Custom 1
-        //21 80 - Custom 2
-        //22 80 - Custom 3
-
         Auto = 0x0002,
         Daylight = 0x0004,
         Incandescent = 0x0006,
@@ -449,5 +476,258 @@ namespace SonyAlphaUSB
         Custom3 = 0x8022,
 
         UnderwaterAuto = 0x8030,
+    }
+
+    /// <summary>
+    /// Warmth bias used by AB (amber-blue)
+    /// </summary>
+    public enum WhiteBalanceAB
+    {
+        B70 = 0xA4,
+        B65 = 0xA6,
+        B60 = 0xA8,
+        B55 = 0xAA,
+        B50 = 0xAC,
+        B45 = 0xAE,
+        B40 = 0xB0,
+        B35 = 0xB2,
+        B30 = 0xB4,
+        B25 = 0xB6,
+        B20 = 0xB8,
+        B15 = 0xBA,
+        B10 = 0xBC,
+        B05 = 0xBE,
+        Zero = 0xC0,
+        A05 = 0xC2,
+        A10 = 0xC4,
+        A15 = 0xC6,
+        A20 = 0xC8,
+        A25 = 0xCA,
+        A30 = 0xCC,
+        A35 = 0xCE,
+        A40 = 0xD0,
+        A45 = 0xD2,
+        A50 = 0xD4,
+        A55 = 0xD6,
+        A60 = 0xD8,
+        A65 = 0xDA,
+        A70 = 0xDC
+    }
+
+    /// <summary>
+    /// Warmth bias used by GM (green-magenta)
+    /// </summary>
+    public enum WhiteBalaceGM
+    {
+        M700 = 0xA4,
+        M675 = 0xA5,
+        M650 = 0xA6,
+        M625 = 0xA7,
+        M600 = 0xA8,
+        M575 = 0xA9,
+        M550 = 0xAA,
+        M525 = 0xAB,
+        M500 = 0xAC,
+        M475 = 0xAD,
+        M450 = 0xAE,
+        M425 = 0xAF,
+        M400 = 0xB0,
+        M375 = 0xB1,
+        M350 = 0xB2,
+        M325 = 0xB3,
+        M300 = 0xB4,
+        M275 = 0xB5,
+        M250 = 0xB6,
+        M225 = 0xB7,
+        M200 = 0xB8,
+        M175 = 0xB9,
+        M150 = 0xBA,
+        M125 = 0xBB,
+        M100 = 0xBC,
+        M075 = 0xBD,
+        M050 = 0xBE,
+        M025 = 0xBF,
+        Zero = 0xC0,
+        G025 = 0xC1,
+        G050 = 0xC2,
+        G075 = 0xC3,
+        G100 = 0xC4,
+        G125 = 0xC5,
+        G150 = 0xC6,
+        G175 = 0xC7,
+        G200 = 0xC8,
+        G225 = 0xC9,
+        G250 = 0xCA,
+        G275 = 0xCB,
+        G300 = 0xCC,
+        G325 = 0xCD,
+        G350 = 0xCE,
+        G375 = 0xCF,
+        G400 = 0xD0,
+        G425 = 0xD1,
+        G450 = 0xD2,
+        G475 = 0xD3,
+        G500 = 0xD4,
+        G525 = 0xD5,
+        G550 = 0xD6,
+        G575 = 0xD7,
+        G600 = 0xD8,
+        G625 = 0xD9,
+        G650 = 0xDA,
+        G675 = 0xDB,
+        G700 = 0xDC
+    }
+
+    public enum DriveMode
+    {
+        SingleShooting = 0x0001,
+
+        // Continuous shooting
+
+        ContinuousShooting_Hi = 0x0002,
+        ContinuousShooting_Mid = 0x8015,
+        ContinuousShooting_Lo = 0x8012,
+        ContinuousShooting_HiPlus = 0x8010,
+
+        // Self timer (single)
+
+        SelfTimerSingle_2Sec = 0x8005,
+        SelfTimerSingle_5Sec = 0x8003,
+        SelfTimerSingle_10Sec = 0x8004,
+
+        // Cont. Bracket
+
+        ContBracket_03EV_3Img = 0x8337,
+        ContBracket_03EV_5Img = 0x8537,
+        ContBracket_03EV_9Img = 0x8937,
+
+        ContBracket_05EV_3Img = 0x8357,
+        ContBracket_05EV_5Img = 0x8557,
+        ContBracket_05EV_9Img = 0x8957,
+
+        ContBracket_07EV_3Img = 0x8377,
+        ContBracket_07EV_5Img = 0x8577,
+        ContBracket_07EV_9Img = 0x8977,
+
+        ContBracket_10EV_3Img = 0x8311,
+        ContBracket_10EV_5Img = 0x8511,
+        ContBracket_10EV_9Img = 0x8911,
+
+        ContBracket_20EV_3Img = 0x8321,
+        ContBracket_20EV_5Img = 0x8521,
+
+        ContBracket_30EV_3Img = 0x8331,
+        ContBracket_30EV_5Img = 0x8531,
+
+        // Single Bracket
+
+        SingleBracket_03EV_3Img = 0x8336,
+        SingleBracket_03EV_5Img = 0x8536,
+        SingleBracket_03EV_9Img = 0x8936,
+
+        SingleBracket_05EV_3Img = 0x8356,
+        SingleBracket_05EV_5Img = 0x8556,
+        SingleBracket_05EV_9Img = 0x8956,
+
+        SingleBracket_07EV_3Img = 0x8376,
+        SingleBracket_07EV_5Img = 0x8576,
+        SingleBracket_07EV_9Img = 0x8976,
+
+        SingleBracket_10EV_3Img = 0x8310,
+        SingleBracket_10EV_5Img = 0x8510,
+        SingleBracket_10EV_9Img = 0x8910,
+
+        SingleBracket_20EV_3Img = 0x8320,
+        SingleBracket_20EV_5Img = 0x8520,
+
+        SingleBracket_30EV_3Img = 0x8330,
+        SingleBracket_30EV_5Img = 0x8530,
+
+        // White Balance Bracket
+
+        WhiteBalanceBracket_Lo = 0x8018,
+        WhiteBalanceBracket_Hi = 0x8028,
+
+        // DRO Bracket
+
+        DROBracket_Lo = 0x8019,
+        DROBracket_Hi = 0x8029,
+
+        // Self timer (continuous)
+
+        SelfTimerCont_10Sec_3Img = 0x8008,
+        SelfTimerCont_10Sec_5Img = 0x8009,
+
+        SelfTimerCont_2Sec_3Img = 0x800E,
+        SelfTimerCont_2Sec_5Img = 0x800F,
+
+        SelfTimerCont_5Sec_3Img = 0x800C,
+        SelfTimerCont_5Sec_5Img = 0x800D
+    }
+
+    public enum FlashMode
+    {
+        AutoFlash = 1,
+        FlashOff = 2,
+        FillFlash = 3,
+        EyeFlashAuto = 4,// unsure of offical name
+        EyeFlash = 5,// unsure of offical name
+
+        AltSlowSync = 0x8001,
+        RearSync = 0x8003,
+
+        EyeFlashAuto_SlowSync = 0x8031,// unsure of offical name
+        SlowSync = 0x8032,
+
+        SlowWL = 0x8041,
+        RearWL = 0x8042
+    }
+
+    public enum MeteringMode
+    {
+        //01 80 
+        //02 80 
+        //04 80 
+        //05 80 
+        //03 80 
+        //06 80
+
+        Multi = 0x8001,
+        Center = 0x8002,
+        EntireScreenAvg = 0x8003,
+        SpotStandard = 0x8004,
+        SpotLarge = 0x8005,
+        Highlight = 0x8006,
+    }
+    
+    public enum FocusMagnifierPhase
+    {
+        /// <summary>
+        /// The magnifier isn't currently being used
+        /// </summary>
+        Inactive = 0,
+        /// <summary>
+        /// x1.0, this phase is used to select the screen region to magnify
+        /// </summary>
+        SelectRegion = 1,
+        /// <summary>
+        /// Actively magnifying a region of the screen
+        /// </summary>
+        Magnify = 2,
+    }
+
+    public enum FocusMagnifierDirection
+    {
+        Left,
+        Right,
+        Up,
+        Down
+    }
+
+    public enum RecordVideoState
+    {
+        Stopped = 0,
+        Recording = 1,
+        UnableToRecord = 2
     }
 }

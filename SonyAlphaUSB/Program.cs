@@ -32,6 +32,10 @@ namespace SonyAlphaUSB
                     //camera.CapturePhoto();
                     //camera.SetFocusMode(FocusMode.MF);
                     //camera.SetFocusMode(FocusModeToggle.Manual);
+                    //camera.SetWhiteBalanceAB(WhiteBalanceAB.B20);
+                    //camera.SetWhiteBalanceGM(WhiteBalaceGM.G250);
+                    //camera.SetWhiteBalanceColorTemp(5000);
+                    //camera.SetMeteringMode(MeteringMode.SpotLarge);
                 }
             }
 

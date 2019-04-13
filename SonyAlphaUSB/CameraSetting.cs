@@ -10,16 +10,12 @@ namespace SonyAlphaUSB
         public SettingIds Id;
         public int Value;
         public int SubValue;
-        public int IncrementValue;
-        public int DecrementValue;
         public List<int> AcceptedValues;
 
         public CameraSetting(SettingIds id)
         {
             Id = id;
             AcceptedValues = new List<int>();
-            IncrementValue = 1;
-            DecrementValue = -1;
         }
 
         public string AsImageFileFormat()
@@ -80,6 +76,11 @@ namespace SonyAlphaUSB
                 case FocusMode.DMF: return "DMF";
                 default: return "???(" + Value + ")";
             }
+        }
+
+        public string AsFocusModeToggleResponse()
+        {
+            return Value == 0 ? "AF" : "MF";
         }
 
         public string AsAspectRatio()
@@ -156,6 +157,178 @@ namespace SonyAlphaUSB
             }
         }
 
+        public string AsWhiteBalanceColorTemp()
+        {
+            if (Value == 0)
+            {
+                return string.Empty;
+            }
+            return Value + "K";
+        }
+
+        public string AsWhiteBalanceAB()
+        {
+            WhiteBalanceAB whiteBalanceAB = (WhiteBalanceAB)Value;
+            switch (whiteBalanceAB)
+            {
+                case WhiteBalanceAB.B70: return "B7";
+                case WhiteBalanceAB.B65: return "B6.5";
+                case WhiteBalanceAB.B60: return "B6";
+                case WhiteBalanceAB.B55: return "B5.5";
+                case WhiteBalanceAB.B50: return "B5";
+                case WhiteBalanceAB.B45: return "B4.5";
+                case WhiteBalanceAB.B40: return "B4";
+                case WhiteBalanceAB.B35: return "B3.5";
+                case WhiteBalanceAB.B30: return "B3";
+                case WhiteBalanceAB.B25: return "B2.5";
+                case WhiteBalanceAB.B20: return "B2";
+                case WhiteBalanceAB.B15: return "B1.5";
+                case WhiteBalanceAB.B10: return "B1";
+                case WhiteBalanceAB.B05: return "B0.5";
+                case WhiteBalanceAB.Zero: return "0";
+                case WhiteBalanceAB.A05: return "A0.5";
+                case WhiteBalanceAB.A10: return "A1";
+                case WhiteBalanceAB.A15: return "A1.5";
+                case WhiteBalanceAB.A20: return "A2";
+                case WhiteBalanceAB.A25: return "A2.5";
+                case WhiteBalanceAB.A30: return "A3";
+                case WhiteBalanceAB.A35: return "A3.5";
+                case WhiteBalanceAB.A40: return "A4";
+                case WhiteBalanceAB.A45: return "A4.5";
+                case WhiteBalanceAB.A50: return "A5";
+                case WhiteBalanceAB.A55: return "A5.5";
+                case WhiteBalanceAB.A60: return "A6";
+                case WhiteBalanceAB.A65: return "A6.5";
+                case WhiteBalanceAB.A70: return "A7";
+                default: return "???(" + Value + ")";
+            }
+        }
+
+        public string AsWhiteBalanceGM()
+        {
+            WhiteBalaceGM whiteBalanceGM = (WhiteBalaceGM)Value;
+            switch (whiteBalanceGM)
+            {
+                case WhiteBalaceGM.M700: return "M7";
+                case WhiteBalaceGM.M675: return "M6.75";
+                case WhiteBalaceGM.M650: return "M6.5";
+                case WhiteBalaceGM.M625: return "M6.25";
+                case WhiteBalaceGM.M600: return "M6";
+                case WhiteBalaceGM.M575: return "M5.75";
+                case WhiteBalaceGM.M550: return "M5.5";
+                case WhiteBalaceGM.M525: return "M5.25";
+                case WhiteBalaceGM.M500: return "M5";
+                case WhiteBalaceGM.M475: return "M4.75";
+                case WhiteBalaceGM.M450: return "M4.5";
+                case WhiteBalaceGM.M425: return "M4.25";
+                case WhiteBalaceGM.M400: return "M4";
+                case WhiteBalaceGM.M375: return "M3.75";
+                case WhiteBalaceGM.M350: return "M3.5";
+                case WhiteBalaceGM.M325: return "M3.25";
+                case WhiteBalaceGM.M300: return "M3";
+                case WhiteBalaceGM.M275: return "M2.75";
+                case WhiteBalaceGM.M250: return "M2.5";
+                case WhiteBalaceGM.M225: return "M2.25";
+                case WhiteBalaceGM.M200: return "M2";
+                case WhiteBalaceGM.M175: return "M1.75";
+                case WhiteBalaceGM.M150: return "M1.5";
+                case WhiteBalaceGM.M125: return "M1.25";
+                case WhiteBalaceGM.M100: return "M1";
+                case WhiteBalaceGM.M075: return "M0.75";
+                case WhiteBalaceGM.M050: return "M0.5";
+                case WhiteBalaceGM.M025: return "M0.25";
+                case WhiteBalaceGM.Zero: return "0";
+                case WhiteBalaceGM.G025: return "G0.25";
+                case WhiteBalaceGM.G050: return "G0.5";
+                case WhiteBalaceGM.G075: return "G0.75";
+                case WhiteBalaceGM.G100: return "G1";
+                case WhiteBalaceGM.G125: return "G1.25";
+                case WhiteBalaceGM.G150: return "G1.5";
+                case WhiteBalaceGM.G175: return "G1.75";
+                case WhiteBalaceGM.G200: return "G2";
+                case WhiteBalaceGM.G225: return "G2.25";
+                case WhiteBalaceGM.G250: return "G2.5";
+                case WhiteBalaceGM.G275: return "G2.75";
+                case WhiteBalaceGM.G300: return "G3";
+                case WhiteBalaceGM.G325: return "G3.25";
+                case WhiteBalaceGM.G350: return "G3.5";
+                case WhiteBalaceGM.G375: return "G3.75";
+                case WhiteBalaceGM.G400: return "G4";
+                case WhiteBalaceGM.G425: return "G4.25";
+                case WhiteBalaceGM.G450: return "G4.5";
+                case WhiteBalaceGM.G475: return "G4.75";
+                case WhiteBalaceGM.G500: return "G5";
+                case WhiteBalaceGM.G525: return "G5.25";
+                case WhiteBalaceGM.G550: return "G5.5";
+                case WhiteBalaceGM.G575: return "G5.75";
+                case WhiteBalaceGM.G600: return "G6";
+                case WhiteBalaceGM.G625: return "G6.25";
+                case WhiteBalaceGM.G650: return "G6.5";
+                case WhiteBalaceGM.G675: return "G6.75";
+                case WhiteBalaceGM.G700: return "G7";
+                default: return "???(" + Value + ")";
+            }
+        }
+
+        public string AsDriveMode()
+        {
+            DriveMode driveMode = (DriveMode)Value;
+            switch (driveMode)
+            {
+                case DriveMode.SingleShooting: return "Single Shooting";
+                case DriveMode.ContinuousShooting_Hi: return "Continuous Shooting: Hi";
+                case DriveMode.ContinuousShooting_Mid: return "Continuous Shooting: Mid";
+                case DriveMode.ContinuousShooting_Lo: return "Continuous Shooting: Lo";
+                case DriveMode.ContinuousShooting_HiPlus: return "Continuous Shooting: Hi+";
+                case DriveMode.SelfTimerSingle_2Sec: return "Self-timer(Single): 2 sec";
+                case DriveMode.SelfTimerSingle_5Sec: return "Self-timer(Single): 5 sec";
+                case DriveMode.SelfTimerSingle_10Sec: return "Self-timer(Single): 10 sec";
+                case DriveMode.ContBracket_03EV_3Img: return "Cont. Bracket: 0.3EV 3 Image";
+                case DriveMode.ContBracket_03EV_5Img: return "Cont. Bracket: 0.3EV 5 Image";
+                case DriveMode.ContBracket_03EV_9Img: return "Cont. Bracket: 0.3EV 9 Image";
+                case DriveMode.ContBracket_05EV_3Img: return "Cont. Bracket: 0.5EV 3 Image";
+                case DriveMode.ContBracket_05EV_5Img: return "Cont. Bracket: 0.5EV 5 Image";
+                case DriveMode.ContBracket_05EV_9Img: return "Cont. Bracket: 0.5EV 9 Image";
+                case DriveMode.ContBracket_07EV_3Img: return "Cont. Bracket: 0.7EV 3 Image";
+                case DriveMode.ContBracket_07EV_5Img: return "Cont. Bracket: 0.7EV 5 Image";
+                case DriveMode.ContBracket_07EV_9Img: return "Cont. Bracket: 0.7EV 9 Image";
+                case DriveMode.ContBracket_10EV_3Img: return "Cont. Bracket: 1.0EV 3 Image";
+                case DriveMode.ContBracket_10EV_5Img: return "Cont. Bracket: 1.0EV 5 Image";
+                case DriveMode.ContBracket_10EV_9Img: return "Cont. Bracket: 1.0EV 9 Image";
+                case DriveMode.ContBracket_20EV_3Img: return "Cont. Bracket: 2.0EV 3 Image";
+                case DriveMode.ContBracket_20EV_5Img: return "Cont. Bracket: 2.0EV 5 Image";
+                case DriveMode.ContBracket_30EV_3Img: return "Cont. Bracket: 3.0EV 3 Image";
+                case DriveMode.ContBracket_30EV_5Img: return "Cont. Bracket: 3.0EV 5 Image";
+                case DriveMode.SingleBracket_03EV_3Img: return "Single Bracket: 0.3EV 3 Image";
+                case DriveMode.SingleBracket_03EV_5Img: return "Single Bracket: 0.3EV 5 Image";
+                case DriveMode.SingleBracket_03EV_9Img: return "Single Bracket: 0.3EV 9 Image";
+                case DriveMode.SingleBracket_05EV_3Img: return "Single Bracket: 0.5EV 3 Image";
+                case DriveMode.SingleBracket_05EV_5Img: return "Single Bracket: 0.5EV 5 Image";
+                case DriveMode.SingleBracket_05EV_9Img: return "Single Bracket: 0.5EV 9 Image";
+                case DriveMode.SingleBracket_07EV_3Img: return "Single Bracket: 0.7EV 3 Image";
+                case DriveMode.SingleBracket_07EV_5Img: return "Single Bracket: 0.7EV 5 Image";
+                case DriveMode.SingleBracket_07EV_9Img: return "Single Bracket: 0.7EV 9 Image";
+                case DriveMode.SingleBracket_10EV_3Img: return "Single Bracket: 1.0EV 3 Image";
+                case DriveMode.SingleBracket_10EV_5Img: return "Single Bracket: 1.0EV 5 Image";
+                case DriveMode.SingleBracket_10EV_9Img: return "Single Bracket: 1.0EV 9 Image";
+                case DriveMode.SingleBracket_20EV_3Img: return "Single Bracket: 2.0EV 3 Image";
+                case DriveMode.SingleBracket_20EV_5Img: return "Single Bracket: 2.0EV 5 Image";
+                case DriveMode.SingleBracket_30EV_3Img: return "Single Bracket: 3.0EV 3 Image";
+                case DriveMode.SingleBracket_30EV_5Img: return "Single Bracket: 3.0EV 5 Image";
+                case DriveMode.WhiteBalanceBracket_Lo: return "White Balance Bracket: Lo";
+                case DriveMode.WhiteBalanceBracket_Hi: return "White Balance Bracket: Hi";
+                case DriveMode.DROBracket_Lo: return "DRO Bracket: Lo";
+                case DriveMode.DROBracket_Hi: return "DRO Bracket: Hi";
+                case DriveMode.SelfTimerCont_10Sec_3Img: return "Self-timer (Cont): 10 sec. 3 Img.";
+                case DriveMode.SelfTimerCont_10Sec_5Img: return "Self-timer (Cont): 10 sec. 5 Img.";
+                case DriveMode.SelfTimerCont_2Sec_3Img: return "Self-timer (Cont): 2 sec. 3 Img.";
+                case DriveMode.SelfTimerCont_2Sec_5Img: return "Self-timer (Cont): 2 sec. 5 Img.";
+                case DriveMode.SelfTimerCont_5Sec_3Img: return "Self-timer (Cont): 5 sec. 3 Img.";
+                case DriveMode.SelfTimerCont_5Sec_5Img: return "Self-timer (Cont): 5 sec. 5 Img.";
+                default: return "???(" + Value + ")";
+            }
+        }
+
         public string AsFNumber()
         {
             return "F" + ((float)Value / 100);
@@ -177,6 +350,66 @@ namespace SonyAlphaUSB
             }
         }
 
+        public string AsFlash()
+        {
+            return AsEV();
+        }
+
+        public string AsFlashMode()
+        {
+            FlashMode flashMode = (FlashMode)Value;
+            switch (flashMode)
+            {
+                case FlashMode.AutoFlash: return "Autoflash";
+                case FlashMode.FlashOff: return "Flash Off";
+                case FlashMode.FillFlash: return "Fill-flash";
+                case FlashMode.EyeFlashAuto: return "Eye-flash Auto";
+                case FlashMode.EyeFlash: return "Eye-flash";
+                case FlashMode.AltSlowSync: return "Slow Sync (alt?).";
+                case FlashMode.SlowSync: return "Slow Sync.";
+                case FlashMode.RearSync: return "Rear Sync.";
+                case FlashMode.EyeFlashAuto_SlowSync: return "Eye-flash Autio (Slow Sync.)";
+                case FlashMode.SlowWL: return "Slow WL";
+                case FlashMode.RearWL: return "Rear WL";
+                default: return "???(" + Value + ")";
+            }
+        }
+
+        public string AsMeteringMode()
+        {
+            MeteringMode meteringMode = (MeteringMode)Value;
+            switch (meteringMode)
+            {
+                case MeteringMode.Multi: return "Multi";
+                case MeteringMode.Center: return "Center";
+                case MeteringMode.SpotStandard: return "Spot: Standard";
+                case MeteringMode.SpotLarge: return "Spot: Large";
+                case MeteringMode.EntireScreenAvg: return "Entire Screen Avg.";
+                case MeteringMode.Highlight: return "Highlight";
+                default: return "???(" + Value + ")";
+            }
+        }
+
+        public string AsFocusMagnifier()
+        {
+            if (Value == 0)
+            {
+                return "x1.0";
+            }
+            return "x" + string.Format("{0:F1}", (float)Value / 10);
+        }
+
+        public string AsPhotoTransferQueue()
+        {
+            int numPhotos = Value & 0xFF;
+            string result = numPhotos.ToString();
+            if (((Value >> 8) & 0xFF) == 0x80)
+            {
+                result += " (photo available for transfer)";
+            }
+            return result;
+        }
+
         public string AsShutterSpeed()
         {
             if (Value == 0 || SubValue == 0)
@@ -196,32 +429,6 @@ namespace SonyAlphaUSB
         public string AsBatteryCharge()
         {
             return Value + "%";
-        }
-
-        public string AsOnOff()
-        {
-            if (IsOn())
-            {
-                return "ON";
-            }
-            else if (IsOff())
-            {
-                return "OFF";
-            }
-            else
-            {
-                return "???";
-            }
-        }
-
-        public bool IsOn()
-        {
-            return Value == 2;
-        }
-
-        public bool IsOff()
-        {
-            return Value == 1;
         }
     }
 }

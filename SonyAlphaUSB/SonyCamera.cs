@@ -7,6 +7,9 @@ using SonyAlphaUSB.Interop;
 
 namespace SonyAlphaUSB
 {
+    // NOTE: Some requests require the setting to change before another request can be sent again (e.g. WhiteBalanceAB)
+    //       Sending another WhiteBalanceAB (or WhiteBalanceGM) request whilst the other is pending will result in no change.
+
     public class SonyCamera
     {
         public static readonly string[] SupportedCameras =
@@ -37,6 +40,15 @@ namespace SonyAlphaUSB
         public int FNumber
         {
             get { return GetFNumber(); }
+        }
+
+        public bool IsFocusMagnifierEnabled
+        {
+            get
+            {
+                CameraSetting setting = GetSetting(SettingIds.FocusMagnifierState);
+                return setting != null && setting.Value != 0;
+            }
         }
 
         Dictionary<SettingIds, CameraSetting> cameraSettings = new Dictionary<SettingIds, CameraSetting>();
@@ -143,9 +155,9 @@ namespace SonyAlphaUSB
                 return false;
             }
 
-            //if (!Update(false))
+            if (!Update(false))
             {
-              //  return false;
+                return false;
             }
 
             return true;
@@ -222,6 +234,11 @@ namespace SonyAlphaUSB
             return DoSettingI16(OpCodes.MainSetting, id, value1, value2);
         }
 
+        private bool DoMainSettingU8(SettingIds id, byte value)
+        {
+            return DoSettingU8(OpCodes.MainSetting, id, value);
+        }
+
         private bool DoSubSettingI16(SettingIds id, short value)
         {
             return DoSettingI16(OpCodes.SubSetting, id, value);
@@ -232,9 +249,9 @@ namespace SonyAlphaUSB
             return DoSettingI16(OpCodes.SubSetting, id, value1, value2);
         }
 
-        private bool DoSubSettingI16(SettingIds id, byte value)
+        private bool DoSubSettingU8(SettingIds id, byte value)
         {
-            return DoSettingI16(OpCodes.SubSetting, id, value);
+            return DoSettingU8(OpCodes.SubSetting, id, value);
         }
 
         private byte[] GetImage(bool liveView)
@@ -432,8 +449,8 @@ namespace SonyAlphaUSB
                                         {
                                             case 1:
                                                 response.Skip(2);
-                                                setting.DecrementValue = response.ReadInt16();// Decrement value
-                                                setting.IncrementValue = response.ReadInt16();// Iecrement value
+                                                response.ReadInt16();// Decrement value?
+                                                response.ReadInt16();// Iecrement value?
                                                 break;
                                             case 2:
                                                 int num = response.ReadUInt16();
@@ -485,9 +502,23 @@ namespace SonyAlphaUSB
                 }
             }
 
-            if (imageData && LiveViewEnabled)
+            if (imageData)
             {
-                LiveViewImage = GetImage(true);
+                if (LiveViewEnabled)
+                {
+                    LiveViewImage = GetImage(true);
+                }
+
+                CameraSetting photoQueue = GetSetting(SettingIds.PhotoTransferQueue);
+                if (photoQueue != null)
+                {
+                    int numPhotos = photoQueue.Value & 0xFF;
+                    bool photoAvailableForTransfer = ((photoQueue.Value >> 8) & 0xFF) == 0x80;
+                    if (photoAvailableForTransfer)
+                    {
+                        byte[] img = GetImage(false);
+                    }
+                }
             }
 
             return true;
@@ -503,8 +534,14 @@ namespace SonyAlphaUSB
         public void CapturePhoto()
         {
             // NOTE: The camera always wants to send the data over to the PC. Is there any way to do it without transfer?
+
+            // Press shutter button
             DoMainSettingI16(SettingIds.HalfPressShutter, 2);// Enter half-press shutter mode
             DoMainSettingI16(SettingIds.CapturePhoto, 2);// Take the photo
+
+            System.Threading.Thread.Sleep(100);
+
+            // Release shutter
             DoMainSettingI16(SettingIds.HalfPressShutter, 1);// Leave half-press shutter mode
             DoMainSettingI16(SettingIds.CapturePhoto, 1);// Some kind of state reset?
         }
@@ -542,7 +579,66 @@ namespace SonyAlphaUSB
 
         public void SetFocusMode(FocusModeToggle focusMode)
         {
-            DoMainSettingI16(SettingIds.FocusModeToggle, (short)focusMode);
+            DoMainSettingI16(SettingIds.FocusModeToggleRequest, (short)focusMode);
+        }
+
+        /// <summary>
+        /// Accepted values: 2500k-9900k (in increments of 100)
+        /// </summary>
+        public void SetWhiteBalanceColorTemp(ushort value)
+        {
+            DoSubSettingI16(SettingIds.WhiteBalanceColorTemp, (short)value);
+        }
+
+        public void SetWhiteBalanceAB(WhiteBalanceAB value)
+        {
+            DoSubSettingU8(SettingIds.WhiteBalanceAB, (byte)value);
+        }
+
+        public void SetWhiteBalanceGM(WhiteBalaceGM value)
+        {
+            DoSubSettingU8(SettingIds.WhiteBalanceGM, (byte)value);
+        }
+
+        public void SetMeteringMode(MeteringMode value)
+        {
+            DoSubSettingI16(SettingIds.MeteringMode, (short)value);
+        }
+
+        public void StepFocusMagnifier(int steps)
+        {
+            for (int i = 0; i < steps; i++)
+            {
+                DoMainSettingI16(SettingIds.FocusMagnifierRequest, 2);
+                DoMainSettingI16(SettingIds.FocusMagnifierRequest, 1);
+            }
+        }
+
+        public void MoveFocusMagnifier(FocusMagnifierDirection direction, int steps)
+        {
+            SettingIds opcode;
+            switch (direction)
+            {
+                case FocusMagnifierDirection.Left:
+                    opcode = SettingIds.FocusMagnifierMoveLeftRequest;
+                    break;
+                case FocusMagnifierDirection.Right:
+                    opcode = SettingIds.FocusMagnifierMoveRightRequest;
+                    break;
+                case FocusMagnifierDirection.Up:
+                    opcode = SettingIds.FocusMagnifierMoveUpRequest;
+                    break;
+                case FocusMagnifierDirection.Down:
+                    opcode = SettingIds.FocusMagnifierMoveDownRequest;
+                    break;
+                default:
+                    return;
+            }
+            for (int i = 0; i < steps; i++)
+            {
+                DoMainSettingI16(opcode, 2);
+                DoMainSettingI16(opcode, 1);
+            }
         }
     }
 }
