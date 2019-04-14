@@ -27,16 +27,6 @@ namespace SonyAlphaUSB
                 {
                     cameras.Remove(camera);
                 }
-                else
-                {
-                    //camera.CapturePhoto();
-                    //camera.SetFocusMode(FocusMode.MF);
-                    //camera.SetFocusMode(FocusModeToggle.Manual);
-                    //camera.SetWhiteBalanceAB(WhiteBalanceAB.B20);
-                    //camera.SetWhiteBalanceGM(WhiteBalaceGM.G250);
-                    //camera.SetWhiteBalanceColorTemp(5000);
-                    //camera.SetMeteringMode(MeteringMode.SpotLarge);
-                }
             }
 
             Stopwatch stopwatch = new Stopwatch();

@@ -5,39 +5,44 @@ using System.Text;
 
 namespace SonyAlphaUSB
 {
+    // gphoto supports a subset of Sony's PTP features. See:
+    // https://github.com/gphoto/libgphoto2/blob/2e5e43430afc62aed8e7950dd4ab48080200d786/camlibs/ptp2/ptp.h#L586
+    // https://github.com/gphoto/libgphoto2/blob/2e5e43430afc62aed8e7950dd4ab48080200d786/camlibs/ptp2/ptp.h#L1045
+    // https://github.com/gphoto/libgphoto2/blob/2e5e43430afc62aed8e7950dd4ab48080200d786/camlibs/ptp2/ptp.h#L2352
+
     public enum OpCodes
     {
-        Connect = 37377,//01 92
+        Connect = 0x9201,//01 92
         
         /// <summary>
         /// The response contains a list of available main/sub settings (just their ids)
         /// </summary>
-        SettingsList = 37378,//02 92
+        SettingsList = 0x9202,//02 92
         
         /// <summary>
         /// A request to change a "main" setting. Watch the response of <see cref="OpCodes.Settings"/> for the change in value.
         /// </summary>
-        MainSetting = 37383,//07 92
+        MainSetting = 0x9207,//07 92
 
         /// <summary>
         /// A request to change a "sub" setting. Watch the response of <see cref="OpCodes.Settings"/> for the change in value.
         /// </summary>
-        SubSetting = 37381,//05 92
+        SubSetting = 0x9205,//05 92
 
         /// <summary>
         /// All of the camera setting values
         /// </summary>
-        Settings = 37385,//09 92
+        Settings = 0x9209,//09 92
 
         /// <summary>
         /// Image info for the live view / captured photo
         /// </summary>
-        GetImageInfo = 4104,//08 10
+        GetImageInfo = 0x1008,//08 10
 
         /// <summary>
         /// Image data for the live view / captured photo
         /// </summary>
-        GetImageData = 4105,//09 10
+        GetImageData = 0x1009,//09 10
     }
 
     public enum SettingIds
@@ -92,9 +97,10 @@ namespace SonyAlphaUSB
         /// <summary>
         /// Green focus state icon (circle / rings icon)
         /// </summary>
-        FocusState = 0xD213,//13 D2
+        AutoFocusState = 0xD213,//13 D2
 
-        _UnkD214 = 0xD214,//14 D2
+        // Taken from gphoto, untested ("might be focal length * 1.000.000")
+        Zoom = 0xD214,//14 D2
 
         PhotoTransferQueue = 0xD215,//15 D2
 
@@ -105,7 +111,10 @@ namespace SonyAlphaUSB
 
         BatteryInfo = 0xD218,//18 D2
 
-        _UnkD219 = 0xD219,//19 D2
+        /// <summary>
+        /// APS-C/Super 35mm (sensor crop)
+        /// </summary>
+        SensorCrop = 0xD219,//19 D2
 
         PictureEffect = 0xD21B,//1B D2
         
@@ -129,6 +138,11 @@ namespace SonyAlphaUSB
         
         FocusMagnifierPhase = 0xD22D,//2D D2
 
+        /// <summary>
+        /// APS-C/Super 35mm related?
+        /// 04 00 00 02 00 00 26 00 02 00 00 - ON
+        /// 04 00 00 02 00 00 3B 00 02 00 00 - OFF
+        /// </summary>
         _UnkD22E = 0xD22E,//2E D2
 
         FocusMagnifier = 0xD22F,//2F D2
@@ -147,7 +161,7 @@ namespace SonyAlphaUSB
         /// Signifies that MF/AF changed
         /// 02 00 00 01 00 01 02 02 00 00 01 - MF mode
         /// 02 00 00 00 00 00 02 02 00 00 01 - AF mode
-        /// (This is a response only. See FocusModeToggleResponse.)
+        /// (This is a response only. See FocusModeToggleRequest.)
         /// </summary>
         FocusModeToggleResponse = 0xD235,//35 D2
 
@@ -171,6 +185,8 @@ namespace SonyAlphaUSB
         AEL = 0xD2C3,//C3 D2
 
         _UnkD2C5 = 0xD2C5,//C5 D2
+
+        // gphoto calls this "StillImage"
         _UnkD2C7 = 0xD2C7,//C7 D2
 
         /// <summary>
@@ -295,7 +311,7 @@ namespace SonyAlphaUSB
         LockOnAF_ExpandFlexibleSpot = 0x0207,
     }
 
-    public enum FocusState
+    public enum AutoFocusState
     {
         // TODO: Find out what 7 means
 
@@ -517,7 +533,7 @@ namespace SonyAlphaUSB
     /// <summary>
     /// Warmth bias used by GM (green-magenta)
     /// </summary>
-    public enum WhiteBalaceGM
+    public enum WhiteBalanceGM
     {
         M700 = 0xA4,
         M675 = 0xA5,
@@ -685,13 +701,6 @@ namespace SonyAlphaUSB
 
     public enum MeteringMode
     {
-        //01 80 
-        //02 80 
-        //04 80 
-        //05 80 
-        //03 80 
-        //06 80
-
         Multi = 0x8001,
         Center = 0x8002,
         EntireScreenAvg = 0x8003,

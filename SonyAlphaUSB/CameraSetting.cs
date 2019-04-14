@@ -5,6 +5,8 @@ using System.Text;
 
 namespace SonyAlphaUSB
 {
+    public delegate void CameraSettingChanged(CameraSetting setting);
+
     public class CameraSetting
     {
         public SettingIds Id;
@@ -12,10 +14,34 @@ namespace SonyAlphaUSB
         public int SubValue;
         public List<int> AcceptedValues;
 
+        internal int PrevValue;
+        internal int PrevSubValue;
+
+        public event CameraSettingChanged Changed;
+
+        public bool HasSubValue { get; private set; }
+
         public CameraSetting(SettingIds id)
         {
             Id = id;
             AcceptedValues = new List<int>();
+
+            switch (id)
+            {
+                case SettingIds.FocusAreaSpot:
+                case SettingIds.FocusMagnifierPosition:
+                case SettingIds.ShutterSpeed:
+                    HasSubValue = true;
+                    break;
+            }
+        }
+
+        internal void OnChanged()
+        {
+            if (Changed != null)
+            {
+                Changed(this);
+            }
         }
 
         public string AsImageFileFormat()
@@ -206,66 +232,66 @@ namespace SonyAlphaUSB
 
         public string AsWhiteBalanceGM()
         {
-            WhiteBalaceGM whiteBalanceGM = (WhiteBalaceGM)Value;
+            WhiteBalanceGM whiteBalanceGM = (WhiteBalanceGM)Value;
             switch (whiteBalanceGM)
             {
-                case WhiteBalaceGM.M700: return "M7";
-                case WhiteBalaceGM.M675: return "M6.75";
-                case WhiteBalaceGM.M650: return "M6.5";
-                case WhiteBalaceGM.M625: return "M6.25";
-                case WhiteBalaceGM.M600: return "M6";
-                case WhiteBalaceGM.M575: return "M5.75";
-                case WhiteBalaceGM.M550: return "M5.5";
-                case WhiteBalaceGM.M525: return "M5.25";
-                case WhiteBalaceGM.M500: return "M5";
-                case WhiteBalaceGM.M475: return "M4.75";
-                case WhiteBalaceGM.M450: return "M4.5";
-                case WhiteBalaceGM.M425: return "M4.25";
-                case WhiteBalaceGM.M400: return "M4";
-                case WhiteBalaceGM.M375: return "M3.75";
-                case WhiteBalaceGM.M350: return "M3.5";
-                case WhiteBalaceGM.M325: return "M3.25";
-                case WhiteBalaceGM.M300: return "M3";
-                case WhiteBalaceGM.M275: return "M2.75";
-                case WhiteBalaceGM.M250: return "M2.5";
-                case WhiteBalaceGM.M225: return "M2.25";
-                case WhiteBalaceGM.M200: return "M2";
-                case WhiteBalaceGM.M175: return "M1.75";
-                case WhiteBalaceGM.M150: return "M1.5";
-                case WhiteBalaceGM.M125: return "M1.25";
-                case WhiteBalaceGM.M100: return "M1";
-                case WhiteBalaceGM.M075: return "M0.75";
-                case WhiteBalaceGM.M050: return "M0.5";
-                case WhiteBalaceGM.M025: return "M0.25";
-                case WhiteBalaceGM.Zero: return "0";
-                case WhiteBalaceGM.G025: return "G0.25";
-                case WhiteBalaceGM.G050: return "G0.5";
-                case WhiteBalaceGM.G075: return "G0.75";
-                case WhiteBalaceGM.G100: return "G1";
-                case WhiteBalaceGM.G125: return "G1.25";
-                case WhiteBalaceGM.G150: return "G1.5";
-                case WhiteBalaceGM.G175: return "G1.75";
-                case WhiteBalaceGM.G200: return "G2";
-                case WhiteBalaceGM.G225: return "G2.25";
-                case WhiteBalaceGM.G250: return "G2.5";
-                case WhiteBalaceGM.G275: return "G2.75";
-                case WhiteBalaceGM.G300: return "G3";
-                case WhiteBalaceGM.G325: return "G3.25";
-                case WhiteBalaceGM.G350: return "G3.5";
-                case WhiteBalaceGM.G375: return "G3.75";
-                case WhiteBalaceGM.G400: return "G4";
-                case WhiteBalaceGM.G425: return "G4.25";
-                case WhiteBalaceGM.G450: return "G4.5";
-                case WhiteBalaceGM.G475: return "G4.75";
-                case WhiteBalaceGM.G500: return "G5";
-                case WhiteBalaceGM.G525: return "G5.25";
-                case WhiteBalaceGM.G550: return "G5.5";
-                case WhiteBalaceGM.G575: return "G5.75";
-                case WhiteBalaceGM.G600: return "G6";
-                case WhiteBalaceGM.G625: return "G6.25";
-                case WhiteBalaceGM.G650: return "G6.5";
-                case WhiteBalaceGM.G675: return "G6.75";
-                case WhiteBalaceGM.G700: return "G7";
+                case WhiteBalanceGM.M700: return "M7";
+                case WhiteBalanceGM.M675: return "M6.75";
+                case WhiteBalanceGM.M650: return "M6.5";
+                case WhiteBalanceGM.M625: return "M6.25";
+                case WhiteBalanceGM.M600: return "M6";
+                case WhiteBalanceGM.M575: return "M5.75";
+                case WhiteBalanceGM.M550: return "M5.5";
+                case WhiteBalanceGM.M525: return "M5.25";
+                case WhiteBalanceGM.M500: return "M5";
+                case WhiteBalanceGM.M475: return "M4.75";
+                case WhiteBalanceGM.M450: return "M4.5";
+                case WhiteBalanceGM.M425: return "M4.25";
+                case WhiteBalanceGM.M400: return "M4";
+                case WhiteBalanceGM.M375: return "M3.75";
+                case WhiteBalanceGM.M350: return "M3.5";
+                case WhiteBalanceGM.M325: return "M3.25";
+                case WhiteBalanceGM.M300: return "M3";
+                case WhiteBalanceGM.M275: return "M2.75";
+                case WhiteBalanceGM.M250: return "M2.5";
+                case WhiteBalanceGM.M225: return "M2.25";
+                case WhiteBalanceGM.M200: return "M2";
+                case WhiteBalanceGM.M175: return "M1.75";
+                case WhiteBalanceGM.M150: return "M1.5";
+                case WhiteBalanceGM.M125: return "M1.25";
+                case WhiteBalanceGM.M100: return "M1";
+                case WhiteBalanceGM.M075: return "M0.75";
+                case WhiteBalanceGM.M050: return "M0.5";
+                case WhiteBalanceGM.M025: return "M0.25";
+                case WhiteBalanceGM.Zero: return "0";
+                case WhiteBalanceGM.G025: return "G0.25";
+                case WhiteBalanceGM.G050: return "G0.5";
+                case WhiteBalanceGM.G075: return "G0.75";
+                case WhiteBalanceGM.G100: return "G1";
+                case WhiteBalanceGM.G125: return "G1.25";
+                case WhiteBalanceGM.G150: return "G1.5";
+                case WhiteBalanceGM.G175: return "G1.75";
+                case WhiteBalanceGM.G200: return "G2";
+                case WhiteBalanceGM.G225: return "G2.25";
+                case WhiteBalanceGM.G250: return "G2.5";
+                case WhiteBalanceGM.G275: return "G2.75";
+                case WhiteBalanceGM.G300: return "G3";
+                case WhiteBalanceGM.G325: return "G3.25";
+                case WhiteBalanceGM.G350: return "G3.5";
+                case WhiteBalanceGM.G375: return "G3.75";
+                case WhiteBalanceGM.G400: return "G4";
+                case WhiteBalanceGM.G425: return "G4.25";
+                case WhiteBalanceGM.G450: return "G4.5";
+                case WhiteBalanceGM.G475: return "G4.75";
+                case WhiteBalanceGM.G500: return "G5";
+                case WhiteBalanceGM.G525: return "G5.25";
+                case WhiteBalanceGM.G550: return "G5.5";
+                case WhiteBalanceGM.G575: return "G5.75";
+                case WhiteBalanceGM.G600: return "G6";
+                case WhiteBalanceGM.G625: return "G6.25";
+                case WhiteBalanceGM.G650: return "G6.5";
+                case WhiteBalanceGM.G675: return "G6.75";
+                case WhiteBalanceGM.G700: return "G7";
                 default: return "???(" + Value + ")";
             }
         }

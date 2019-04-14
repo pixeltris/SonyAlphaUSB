@@ -244,7 +244,7 @@ namespace SonyAlphaUSB
                                                                     setting.AcceptedValues.Clear();
                                                                     for (int j = 0; j < num; j++)
                                                                     {
-                                                                        setting.AcceptedValues.Add(outPacket.ReadInt16());
+                                                                        setting.AcceptedValues.Add(outPacket.ReadUInt16());
                                                                     }
                                                                     break;
                                                                 default:
@@ -257,8 +257,15 @@ namespace SonyAlphaUSB
                                                         {
                                                             outPacket.Skip(6);
                                                             TryModifyValue(setting.Id, pOutData, outPacket, 2, true);
-                                                            setting.Value = outPacket.ReadUInt16();
-                                                            setting.SubValue = outPacket.ReadUInt16();
+                                                            if (setting.HasSubValue)
+                                                            {
+                                                                setting.Value = outPacket.ReadUInt16();
+                                                                setting.SubValue = outPacket.ReadUInt16();
+                                                            }
+                                                            else
+                                                            {
+                                                                setting.Value = outPacket.ReadInt32();
+                                                            }
                                                             byte subDataType = outPacket.ReadByte();
                                                             switch (subDataType)
                                                             {
@@ -318,9 +325,6 @@ namespace SonyAlphaUSB
                                                             case SettingIds.FNumber:
                                                                 Log((SettingIds)settingId + ": " + setting.AsFNumber());
                                                                 break;
-                                                            case SettingIds.FocusArea:
-                                                                Log((SettingIds)settingId + ": " + (FocusAreaIds)setting.Value);
-                                                                break;
                                                             case SettingIds.ISO:
                                                                 Log((SettingIds)settingId + ": " + setting.Value);
                                                                 break;
@@ -336,14 +340,17 @@ namespace SonyAlphaUSB
                                                             case SettingIds.FEL_State:
                                                                 Log((SettingIds)settingId + ": " + (setting.Value == 2 ? "ON" : "OFF"));
                                                                 break;
+                                                            case SettingIds.FocusArea:
+                                                                Log((SettingIds)settingId + ": " + (FocusAreaIds)setting.Value);
+                                                                break;
                                                             case SettingIds.FocusAreaSpot:
                                                                 Log((SettingIds)settingId + ": x(" + setting.SubValue + ") y(" + setting.Value + ")");
                                                                 break;
                                                             case SettingIds.LiveViewState:
                                                                 Log((SettingIds)settingId + " " + (setting.Value != 0 ? "ON" : "OFF"));
                                                                 break;
-                                                            case SettingIds.FocusState:
-                                                                Log((SettingIds)settingId + " " + (FocusState)setting.Value);
+                                                            case SettingIds.AutoFocusState:
+                                                                Log((SettingIds)settingId + " " + (AutoFocusState)setting.Value);
                                                                 break;
                                                             case SettingIds.EV:
                                                                 Log((SettingIds)settingId + ": " + setting.AsEV());
@@ -402,12 +409,6 @@ namespace SonyAlphaUSB
                                                             case SettingIds.MeteringMode:
                                                                 Log((SettingIds)settingId + ": " + setting.AsMeteringMode());
                                                                 break;
-                                                            case SettingIds.FocusMagnifierRequest:
-                                                                Log((SettingIds)settingId + ": " + setting.Value);
-                                                                break;
-                                                            case SettingIds.FocusMagnifierResetRequest:
-                                                                Log((SettingIds)settingId + ": " + setting.Value);
-                                                                break;
                                                             case SettingIds.FocusMagnifier:
                                                                 Log((SettingIds)settingId + ": " + setting.AsFocusMagnifier());
                                                                 break;
@@ -422,6 +423,9 @@ namespace SonyAlphaUSB
                                                                 break;
                                                             case SettingIds.PhotoTransferQueue:
                                                                 Log((SettingIds)settingId + ": " + setting.AsPhotoTransferQueue());
+                                                                break;
+                                                            case SettingIds.SensorCrop:
+                                                                Log((SettingIds)settingId + ": " + (setting.Value == 2 ? "ON" : "OFF"));
                                                                 break;
                                                             default:
                                                                 Log("Setting (" + (SettingIds)settingId + " / " + settingIdHex + ") changed");
