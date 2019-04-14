@@ -1097,6 +1097,16 @@ namespace SonyAlphaUSB
             DoMainSettingI16(SettingIds.FocusModeToggleRequest, (short)focusMode);
         }
 
+        /// <summary>
+        /// Maximum value is 7/-7
+        /// </summary>
+        /// <param name="steps"></param>
+        public void ModifyFocusDistance(int steps)
+        {
+            // TODO: If the steps value is larger than 7 then use a loop?
+            DoMainSettingI16(SettingIds.FocusDistance, (short)steps);
+        }
+
         public ShootingMode GetShootingMode()
         {
             CameraSetting setting = GetSetting(SettingIds.ShootingMode);

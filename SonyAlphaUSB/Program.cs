@@ -27,6 +27,10 @@ namespace SonyAlphaUSB
                 {
                     cameras.Remove(camera);
                 }
+                else
+                {
+                    camera.ModifyFocusDistance(7);
+                }
             }
 
             Stopwatch stopwatch = new Stopwatch();

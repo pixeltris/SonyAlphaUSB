@@ -214,7 +214,7 @@ namespace SonyAlphaUSB
         FocusMagnifierMoveLeftRequest = 0xD2CF,//CF D2
         FocusMagnifierMoveRightRequest = 0xD2D0,//D0 D2
 
-        _UnkD2D1 = 0xD2D1,//D1 D2
+        FocusDistance = 0xD2D1,//D1 D2
 
         /// <summary>
         /// Used to toggle AF/MF (1=MF, 2=AF).
